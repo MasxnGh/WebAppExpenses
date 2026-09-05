@@ -335,7 +335,14 @@ h1,h2,h3,p{margin:0}
 .quickadd.lnadd{grid-template-columns:186px minmax(0,1fr) 124px auto}
 .quickadd.lnadd .f-seg{grid-column:1/-1}
 
-.slip.ln{grid-template-columns:36px minmax(0,1fr) auto auto}
+.slip.ln{grid-template-columns:36px auto minmax(0,1fr) auto auto auto;
+  grid-template-areas:"ico date body amt bal act"}
+.slip.ln .cicon{grid-area:ico}
+.slip.ln .lndate{grid-area:date}
+.slip.ln .sbody{grid-area:body}
+.slip.ln .samt{grid-area:amt}
+.slip.ln .lnbal{grid-area:bal}
+.slip.ln .sact{grid-area:act}
 .lndate{font-family:var(--mono);font-size:11.5px;color:var(--muted);flex:none;
   padding:2px 7px;border-radius:5px;border:1px solid var(--line-soft);background:var(--surface)}
 .slip.ln .samt.out{color:var(--danger)}
@@ -483,8 +490,9 @@ input.inp.amt{font-family:var(--mono);font-variant-numeric:tabular-nums;text-ali
   color:var(--c);background:color-mix(in srgb,var(--c) 14%,transparent);
   border:1px solid color-mix(in srgb,var(--c) 30%,transparent);
 }
-.sbody{display:flex;align-items:baseline;gap:8px;min-width:0}
-.sname{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;flex:none;max-width:100%}
+.sbody{display:flex;align-items:baseline;gap:8px;min-width:0;overflow:hidden}
+.sname{font-weight:600;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  flex:0 1 auto;min-width:0}
 .leader{flex:1;min-width:14px;border-bottom:1.5px dotted var(--line);transform:translateY(-4px)}
 .smeta{display:flex;align-items:center;gap:7px;flex:none}
 .duetag{font-family:var(--mono);font-size:10.5px;padding:2px 6px;border-radius:5px;
@@ -637,6 +645,19 @@ textarea.inp{height:auto;min-height:64px;padding:9px 10px;resize:vertical;line-h
   .slip .iact{width:30px;height:26px}
   .slip .tick{margin-right:6px}
   .samt{min-width:0}
+  .slip.ln{
+    grid-template-columns:34px minmax(0,1fr) auto;
+    grid-template-areas:
+      "ico body amt"
+      "ico date bal"
+      "ico act  act";
+    column-gap:10px;row-gap:3px;
+  }
+  .slip.ln .cicon{align-self:start;margin-top:1px}
+  .slip.ln .lndate{justify-self:start}
+  .slip.ln .lnbal{min-width:0;justify-self:end}
+  .slip.ln .leader{display:none}
+  .slip.ln .sact{margin-top:1px}
   .donut-wrap{flex-direction:column;align-items:stretch}
   .donut{align-self:center}
   .wrap{padding-inline:14px}
@@ -1905,15 +1926,13 @@ function renderLoanList(rows, left){
     row.dataset.id = e.id;
     row.innerHTML =
       '<span class="cicon">' + ico(isOut ? "i-arrow-out" : "i-arrow-in") + "</span>" +
+      '<span class="lndate">' + thDate(e.date) + "</span>" +
       '<span class="sbody">' +
-        '<span class="lndate">' + thDate(e.date) + "</span>" +
         '<span class="sname">' + escapeHtml(e.memo || (isOut ? "เอาออกมาใช้" : "คืนเข้าบัญชี")) + "</span>" +
         '<span class="leader"></span>' +
       "</span>" +
-      '<span class="smeta">' +
-        '<span class="samt ' + (isOut ? "out" : "back") + '">' + (isOut ? "+" : "−") + fmt(e.amount) + "</span>" +
-        '<span class="lnbal">ค้าง <b>' + fmt0(e._bal) + "</b></span>" +
-      "</span>" +
+      '<span class="samt ' + (isOut ? "out" : "back") + '">' + (isOut ? "+" : "−") + fmt(e.amount) + "</span>" +
+      '<span class="lnbal">ค้าง <b>' + fmt0(e._bal) + "</b></span>" +
       '<span class="sact">' +
         '<button class="iact" data-lact="edit" aria-label="แก้ไข" title="แก้ไข">' + ico("i-pencil", "ic-sm") + "</button>" +
         '<button class="iact del" data-lact="del" aria-label="ลบ" title="ลบ">' + ico("i-trash", "ic-sm") + "</button>" +
