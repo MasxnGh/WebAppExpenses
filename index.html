@@ -47,6 +47,15 @@
   --shadow-m:0 2px 4px rgba(15,38,45,.05),0 14px 32px -18px rgba(15,38,45,.35);
   --shadow-l:0 24px 60px -20px rgba(15,38,45,.4);
   --r:12px;
+
+  /* จังหวะการเคลื่อนไหว — สามระดับ ไม่ใช่ค่าเดียวใช้ทุกที่
+     tap  = ตอบสนองนิ้วทันที | ui = เปลี่ยนสถานะหน้าจอ | tell = กำลังบอกตัวเลข */
+  --dur-tap:110ms;
+  --dur-ui:200ms;
+  --dur-tell:800ms;
+  --ease-out:cubic-bezier(.2,.9,.3,1);
+  --ease-in:cubic-bezier(.5,0,.9,.3);
+  --ease-tell:cubic-bezier(.2,.85,.2,1);
   --btn-ink:#FFFFFF;
   --mark-bg:var(--ink);
   --mark-ink:var(--ground);
@@ -383,7 +392,7 @@ h1,h2,h3,p{margin:0}
 }
 .odo .sep{display:inline-block}
 .odo .drum{display:inline-block;height:1em;overflow:hidden;vertical-align:top}
-.odo .reel{display:block;transition:transform .8s cubic-bezier(.2,.85,.2,1)}
+.odo .reel{display:block;transition:transform var(--dur-tell) var(--ease-tell)}
 .odo .reel i{display:block;height:1em;line-height:1em;font-style:normal}
 .odo .dec{display:flex;font-size:.44em;color:var(--stmt-dim);align-self:flex-end;margin-bottom:.5em;letter-spacing:-.02em}
 
@@ -408,7 +417,7 @@ h1,h2,h3,p{margin:0}
 .budget-top b{font-family:var(--mono);font-size:12.5px;color:var(--stmt-ink)}
 .gauge{position:relative;height:12px;border-radius:3px;background:var(--gauge-bg);overflow:hidden;border:1px solid var(--stmt-line)}
 .gauge .fill{position:absolute;inset:0 auto 0 0;width:0;border-radius:2px;
-  background:linear-gradient(90deg,#2FA8A0,#6FE0D6);transition:width .8s cubic-bezier(.2,.85,.2,1)}
+  background:linear-gradient(90deg,#2FA8A0,#6FE0D6);transition:width var(--dur-tell) var(--ease-tell)}
 .gauge .fill.warn{background:linear-gradient(90deg,#D9973F,#F2C078)}
 .gauge .fill.over{background:linear-gradient(90deg,#C9553F,#EE8A6E)}
 .gauge .ticks{position:absolute;inset:0;
@@ -432,6 +441,8 @@ main{padding:26px 0 90px}
 .card-body{padding:16px 18px}
 
 /* ---------- ฟอร์มเพิ่มรายการเร็ว ---------- */
+.addbar{display:none;padding:14px 14px 0}
+.addbar .btn{width:100%}
 .quickadd{display:grid;grid-template-columns:126px minmax(0,1fr) 118px 80px auto;gap:8px;
   padding:14px 18px;border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
 .field{position:relative;display:flex;flex-direction:column}
@@ -476,10 +487,25 @@ input.inp.amt{font-family:var(--mono);font-variant-numeric:tabular-nums;text-ali
 
 /* ---------- รายการสลิป ---------- */
 .list{padding:6px 0}
+@keyframes feed{from{opacity:0;transform:translateY(-7px)}to{opacity:1;transform:none}}
+.list.feed > .slip{animation:feed var(--dur-ui) var(--ease-out) both;
+  animation-delay:calc(var(--i,0) * 26ms)}
+
+/* แถบบอกว่ามีอะไรต้องจ่าย — คำตอบของคำถามที่ทำให้เปิดแอปขึ้นมา */
+.duebar{display:flex;align-items:center;gap:10px;padding:12px 18px;font-size:13px;line-height:1.5;
+  color:var(--ink-2);border-bottom:1px solid var(--line-soft);background:var(--surface-2)}
+.duebar.late{background:color-mix(in srgb,var(--danger) 7%,var(--surface-2))}
+.duebar.done{background:color-mix(in srgb,var(--ok) 7%,var(--surface-2))}
+.duebar .ic{flex:none;color:var(--meter)}
+.duebar b{color:var(--ink);font-weight:700}
+.duebar .when{font-family:var(--mono);font-variant-numeric:tabular-nums}
+.duebar.late .ic{color:var(--danger)}
+.duebar.late b{color:var(--danger)}
+.duebar.done .ic{color:var(--ok)}
 .slip{
   display:grid;grid-template-columns:36px minmax(0,1fr) auto auto;align-items:center;gap:13px;
-  padding:11px 18px;border-left:3px solid transparent;position:relative;
-  transition:background .12s;
+  padding:9px 18px;border-left:3px solid transparent;position:relative;
+  transition:background var(--dur-tap);
 }
 .slip:nth-child(even){background:var(--slip-alt)}
 .slip:hover{background:var(--accent-soft);border-left-color:var(--c)}
@@ -504,16 +530,19 @@ input.inp.amt{font-family:var(--mono);font-variant-numeric:tabular-nums;text-ali
 .note-i{color:var(--muted);display:flex}
 .samt{font-family:var(--mono);font-variant-numeric:tabular-nums;font-size:15.5px;font-weight:600;
   letter-spacing:-.02em;text-align:right;min-width:96px}
-.sact{display:flex;align-items:center;gap:3px;opacity:0;transition:opacity .15s}
-.slip:hover .sact,.slip:focus-within .sact{opacity:1}
-.iact{width:28px;height:28px;border-radius:7px;display:grid;place-items:center;color:var(--muted);font-size:13px}
+.sact{display:flex;align-items:center;gap:4px;flex:none}
+.iact{width:34px;height:34px;border-radius:9px;display:grid;place-items:center;color:var(--muted);
+  transition:background var(--dur-tap),color var(--dur-tap)}
 .iact:hover{background:var(--surface);color:var(--ink);box-shadow:var(--shadow-s)}
 .iact.del:hover{color:var(--danger)}
+/* ติ๊กจ่ายแล้ว: ปุ่มที่กดบ่อยที่สุด ให้ใหญ่และเห็นตลอด ไม่ซ่อนไว้ใต้การชี้เมาส์ */
 .tick{
-  width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);flex:none;
-  display:grid;place-items:center;color:transparent;font-size:12px;font-weight:800;transition:.15s;
+  width:34px;height:34px;border-radius:10px;border:1.5px solid var(--line);flex:none;
+  display:grid;place-items:center;color:color-mix(in srgb,var(--muted) 38%,transparent);
+  transition:background var(--dur-tap),border-color var(--dur-tap),color var(--dur-tap);
 }
-.tick:hover{border-color:var(--ok)}
+.tick .ic{width:16px;height:16px;stroke-width:2.4}
+.tick:hover{border-color:var(--ok);color:var(--ok);background:color-mix(in srgb,var(--ok) 10%,transparent)}
 .slip.paid .tick{background:var(--ok);border-color:var(--ok);color:#fff}
 .slip-total{display:flex;align-items:baseline;justify-content:space-between;gap:12px;
   padding:14px 18px;border-top:2px solid var(--rule-strong);margin-top:6px}
@@ -523,13 +552,14 @@ input.inp.amt{font-family:var(--mono);font-variant-numeric:tabular-nums;text-ali
 .empty{padding:44px 18px;text-align:center;color:var(--muted)}
 .empty-ic{display:flex;justify-content:center;color:var(--line)}
 .empty-ic .ic{width:36px;height:36px;stroke-width:1.5}
-.empty p{margin-top:10px;font-size:13.5px}
+.empty p{margin-top:10px;font-size:13.5px;line-height:1.7}
+.empty .btn{margin-top:14px}
 
 /* ---------- แผนภูมิ ---------- */
 .donut-wrap{display:flex;align-items:center;gap:18px}
 .donut{flex:none;position:relative}
 .donut svg{display:block;transform:rotate(-90deg)}
-.donut circle{fill:none;stroke-width:20;transition:stroke-dasharray .8s cubic-bezier(.2,.85,.2,1)}
+.donut circle{fill:none;stroke-width:20;transition:stroke-dasharray var(--dur-tell) var(--ease-tell)}
 .donut .mid{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
 .donut .mid .v{font-family:var(--mono);font-size:17px;font-weight:700;letter-spacing:-.02em}
 .donut .mid .l{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
@@ -544,7 +574,7 @@ input.inp.amt{font-family:var(--mono);font-variant-numeric:tabular-nums;text-ali
 .bars{display:flex;align-items:flex-end;gap:6px;height:118px;padding-top:6px}
 .bcol{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;height:100%;justify-content:flex-end}
 .bcol .stack{width:100%;max-width:34px;border-radius:5px 5px 2px 2px;background:var(--line-soft);
-  position:relative;overflow:hidden;transition:height .7s cubic-bezier(.2,.85,.2,1);min-height:3px}
+  position:relative;overflow:hidden;transition:height var(--dur-tell) var(--ease-tell);min-height:3px}
 .bcol .stack .in{position:absolute;inset:auto 0 0 0;top:0;background:var(--accent);opacity:.32;transition:.3s}
 .bcol.cur .stack .in{opacity:1}
 .bcol:hover .stack .in{opacity:.7}
@@ -623,7 +653,20 @@ textarea.inp{height:auto;min-height:64px;padding:9px 10px;resize:vertical;line-h
   .stmt-side{min-width:0}
 }
 @media (max-width:760px){
-  .quickadd{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px}
+  /* หัวบิลบนมือถือเดิมสูงเกือบเต็มจอ กว่าจะเห็นรายการแรกต้องเลื่อนยาว
+     บีบตัวเลขสรุปให้อยู่แถวเดียว และตัด "จำนวนรายการ" ที่ซ้ำกับหัวการ์ดออก */
+  .stmt-side{display:grid;grid-template-columns:1fr 1fr;gap:12px 14px}
+  .stmt-side .kv{flex-direction:column;align-items:flex-start;gap:1px;
+    border-bottom:0;padding-bottom:0}
+  .stmt-side .kv span{font-size:11.5px}
+  .stmt-side .kv b{font-size:18px}
+  .stmt-side .kv:nth-of-type(3){display:none}
+  .budget{grid-column:1/-1;margin-top:0}
+  .addbar{display:block}
+  .quickadd{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:8px;display:none}
+  .quickadd.open{display:grid;animation:feed var(--dur-ui) var(--ease-out)}
+  .slip{padding-block:10px}
+  .tick,.slip .iact{width:40px;height:40px}
   .quickadd .f-name{grid-column:1/-1}
   .qa-submit{grid-column:1/-1}
   .qa-submit .btn{width:100%}
@@ -639,11 +682,14 @@ textarea.inp{height:auto;min-height:64px;padding:9px 10px;resize:vertical;line-h
   .tpl-acts{opacity:1}
   .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:thin;padding-inline:14px}
   .filters .chip{flex:none}
-  .slip{grid-template-columns:34px minmax(0,1fr) auto;padding:8px 14px;gap:4px 10px}
+  /* มือถือ: ให้แถวจบในบรรทัดเดียว เหลือปุ่มติ๊กปุ่มเดียวที่ต้องเล็ง
+     ส่วนการแก้ไขใช้วิธีแตะที่ตัวแถว ซึ่งเป็นเป้าที่ใหญ่กว่าปุ่มดินสอมาก */
+  .slip{grid-template-columns:34px minmax(0,1fr) auto auto;padding:8px 14px;gap:10px}
   .cicon{width:34px;height:32px}
-  .slip .sact{grid-column:2/-1;justify-content:flex-end;gap:0;margin-top:-2px}
-  .slip .iact{width:30px;height:26px}
-  .slip .tick{margin-right:6px}
+  .slip .sact{gap:0}
+  .slip .iact{display:none}
+  .smeta{gap:6px}
+  .duetag{font-size:10px;padding:2px 5px}
   .samt{min-width:0}
   .slip.ln{
     grid-template-columns:34px minmax(0,1fr) auto;
@@ -817,6 +863,14 @@ textarea.inp{height:auto;min-height:64px;padding:9px 10px;resize:vertical;line-h
         <div class="card-head">
           <h2>รายการค่าใช้จ่าย</h2>
           <span class="hint" id="listHint"></span>
+        </div>
+
+        <div class="duebar" id="dueBar" hidden></div>
+
+        <div class="addbar">
+          <button class="btn" id="addToggle" type="button" aria-expanded="false" aria-controls="qaForm">
+            <svg class="ic ic-sm" aria-hidden="true"><use href="#i-plus"></use></svg><span id="addToggleTxt">เพิ่มรายการ</span>
+          </button>
         </div>
 
         <form class="quickadd" id="qaForm" autocomplete="off">
@@ -1021,7 +1075,8 @@ textarea.inp{height:auto;min-height:64px;padding:9px 10px;resize:vertical;line-h
       <div class="field"><label for="edNote">โน้ต (เช่น เลขมิเตอร์)</label><textarea class="inp" id="edNote"></textarea></div>
     </div>
     <div class="dlg-foot">
-      <button class="btn danger sm spacer" id="edDelete" value="delete" type="submit">ลบรายการ</button>
+      <button class="btn danger sm" id="edDelete" value="delete" type="submit">ลบรายการ</button>
+      <button class="btn ghost sm spacer" id="edTpl" value="tpl" type="submit">ตั้งเป็นบิลประจำ</button>
       <button class="btn ghost sm" value="cancel" type="submit">ยกเลิก</button>
       <button class="btn sm" value="save" type="submit">บันทึก</button>
     </div>
@@ -1355,6 +1410,7 @@ let state = {
   editingTpl: null
 };
 
+let feedOnce = true;          // เล่นแอนิเมชันป้อนกระดาษเฉพาะตอนเปิดหน้า/เปลี่ยนเดือน
 const itemsOf = ym => db.items.filter(i => i.ym === ym);
 const sum = arr => arr.reduce((a, i) => a + (Number(i.amount) || 0), 0);
 
@@ -1411,7 +1467,25 @@ function toast(msg, actionLabel, onAction, ms){
 /* ==========================================================
    6b. กล่องถาม/ยืนยัน (แทน prompt กับ confirm ที่ถูกบล็อกบนหน้าเว็บที่เผยแพร่)
    ========================================================== */
+/** อ่านผลจาก submit (ยิงก่อนกล่องปิดเสมอ) แล้วค่อยเผื่อ close ไว้เป็นตาข่ายรองรับ
+ *  fn รับค่าของปุ่มที่กด เช่น "save" | "delete" | "cancel" และถูกเรียกครั้งเดียวต่อการเปิดหนึ่งครั้ง */
+function onDialogResult(dlg, fn){
+  let lastSubmit = 0;
+  dlg.addEventListener("submit", e => {
+    lastSubmit = Date.now();
+    fn((e.submitter && e.submitter.value) || dlg.returnValue || "");
+  });
+  dlg.addEventListener("close", () => {
+    // submit เพิ่งจัดการไปแล้ว อย่าทำซ้ำ — แต่ถ้าปิดด้วย Esc หรือปิดจากโค้ด ต้องรับไม้ต่อ
+    if (Date.now() - lastSubmit < 500) return;
+    fn(dlg.returnValue || "");
+  });
+}
+
 const askDlg = el("askDlg");
+let askPending = null;
+onDialogResult(el("askDlg"), v => { if (askPending) askPending(v); });
+
 function ask(o){
   return new Promise(resolve => {
     el("askTitle").textContent = o.title;
@@ -1424,12 +1498,10 @@ function ask(o){
     ok.textContent = o.okText || "ตกลง";
     ok.className   = "btn sm" + (o.danger ? " danger" : "");
 
-    const onClose = () => {
-      askDlg.removeEventListener("close", onClose);
-      const accepted = askDlg.returnValue === "ok";
-      resolve(accepted ? (o.input ? el("askInput").value : true) : null);
+    askPending = v => {
+      askPending = null;
+      resolve(v === "ok" ? (o.input ? el("askInput").value : true) : null);
     };
-    askDlg.addEventListener("close", onClose);
     askDlg.showModal();
     if (o.input) setTimeout(() => { el("askInput").focus(); el("askInput").select(); }, 30);
   });
@@ -1624,24 +1696,83 @@ function dueState(item){
   return "";
 }
 
+function renderDueBar(){
+  const bar = el("dueBar");
+  const list = itemsOf(state.ym);
+  if (!list.length) { bar.hidden = true; return; }
+  bar.hidden = false;
+
+  const unpaid = list.filter(i => !i.paid);
+  if (!unpaid.length) {
+    bar.className = "duebar done";
+    bar.innerHTML = ico("i-check-circle", "ic-sm") + "<span>จ่ายครบทุกรายการของเดือนนี้แล้ว</span>";
+    return;
+  }
+
+  const owed = sum(unpaid);
+  const dated = unpaid.filter(i => i.due).sort((a, b) => a.due - b.due);
+  const late  = dated.filter(i => dueState(i) === "late");
+  const head  = late[0] || dated[0];
+
+  let tail = "";
+  if (late.length) {
+    tail = " · <b>เลยกำหนดแล้ว " + late.length + " รายการ</b>";
+  } else if (head) {
+    tail = " · ใกล้สุดคือ <b>" + escapeHtml(head.name || cat(head.cat).name) +
+           '</b> <span class="when">วันที่ ' + head.due + "</span>";
+  }
+  // ยอด 0 มักแปลว่าเพิ่งดึงบิลประจำมาแต่ยังไม่ได้เติมยอดจริง บอกตรงๆ ดีกว่าโชว์ "รวม 0 บาท"
+  const head2 = owed > 0
+    ? "ค้างจ่าย <b>" + unpaid.length + " รายการ</b> รวม <b>" + fmt0(owed) + "</b> บาท"
+    : "<b>" + unpaid.length + " รายการ</b> ยังไม่ได้ใส่ยอด";
+  bar.className = "duebar" + (late.length ? " late" : "");
+  bar.innerHTML = ico(late.length ? "i-alert" : "i-calendar", "ic-sm") +
+    "<span>" + head2 + (owed > 0 ? tail : "") + "</span>";
+}
+
+/** ป้ายกำหนดจ่าย — บอกสิ่งที่ต้องรู้จริงๆ ไม่ใช่ทวนวันที่เฉยๆ
+ *  เลยกำหนดแล้วก็บอกแค่นั้น ใกล้ถึงก็นับถอยหลังให้ นอกนั้นบอกวันที่ */
+function dueLabel(it, ds){
+  if (ds === "late") return "เลยกำหนด";
+  if (ds === "soon") {
+    const left = it.due - new Date().getDate();
+    return left <= 0 ? "ครบวันนี้" : "อีก " + left + " วัน";
+  }
+  return "วันที่ " + it.due;
+}
+
 function renderList(){
   const box = el("list");
   const list = visibleItems();
   box.innerHTML = "";
+  box.classList.toggle("feed", feedOnce);
+  feedOnce = false;
 
   if (!list.length) {
     const e = document.createElement("div");
     e.className = "empty";
     const total = itemsOf(state.ym).length;
-    e.innerHTML = '<div class="empty-ic">' + ico("i-inbox") + "</div><p>" +
-      (total ? "ไม่มีรายการที่ตรงกับตัวกรองนี้" :
-       "ยังไม่มีรายการในเดือนนี้<br>เพิ่มด้านบน หรือกด “ดึงเข้าเดือนนี้” จากบิลประจำ") + "</p>";
+    if (total) {
+      e.innerHTML = '<div class="empty-ic">' + ico("i-inbox") +
+        "</div><p>ไม่มีรายการที่ตรงกับตัวกรองนี้</p>" +
+        '<button class="btn ghost sm" data-empty="clear">ล้างตัวกรอง</button>';
+    } else if (db.templates.length) {
+      e.innerHTML = '<div class="empty-ic">' + ico("i-inbox") +
+        "</div><p>ยังไม่มีรายการในเดือนนี้<br>ดึงบิลประจำ " + db.templates.length +
+        " รายการเข้ามาตั้งต้น แล้วค่อยเติมยอดจริง</p>" +
+        '<button class="btn" data-empty="pull">' + ico("i-download", "ic-sm") + "ดึงบิลประจำเข้าเดือนนี้</button>";
+    } else {
+      e.innerHTML = '<div class="empty-ic">' + ico("i-inbox") +
+        "</div><p>ยังไม่มีรายการในเดือนนี้<br>เริ่มจากบิลแรกได้เลย</p>" +
+        '<button class="btn" data-empty="add">' + ico("i-plus", "ic-sm") + "เพิ่มรายการแรก</button>";
+    }
     box.appendChild(e);
     el("listTotal").hidden = true;
     el("listHint").textContent = "";
     return;
   }
 
+  let n = 0;
   for (const it of list) {
     const c = cat(it.cat);
     const row = document.createElement("div");
@@ -1651,7 +1782,7 @@ function renderList(){
 
     const ds = dueState(it);
     const dueHtml = it.due
-      ? '<span class="duetag ' + ds + '">' + (ds === "late" ? "เลยกำหนด " : "") + "ทุกวันที่ " + it.due + "</span>"
+      ? '<span class="duetag ' + ds + '">' + dueLabel(it, ds) + "</span>"
       : "";
 
     row.innerHTML =
@@ -1667,11 +1798,10 @@ function renderList(){
       '<span class="sact">' +
         '<button class="tick" data-act="paid" aria-pressed="' + (it.paid ? "true" : "false") +
           '" aria-label="' + (it.paid ? "ทำเครื่องหมายว่ายังไม่จ่าย" : "ทำเครื่องหมายว่าจ่ายแล้ว") +
-          '" title="' + (it.paid ? "ยังไม่จ่าย" : "จ่ายแล้ว") + '">' + ico("i-check", "ic-xs") + "</button>" +
-        '<button class="iact" data-act="edit" aria-label="แก้ไข" title="แก้ไข">' + ico("i-pencil", "ic-sm") + "</button>" +
-        '<button class="iact" data-act="tpl" aria-label="ตั้งเป็นบิลประจำ" title="ตั้งเป็นบิลประจำ">' + ico("i-repeat", "ic-sm") + "</button>" +
-        '<button class="iact del" data-act="del" aria-label="ลบ" title="ลบ">' + ico("i-trash", "ic-sm") + "</button>" +
+          '" title="' + (it.paid ? "ยังไม่จ่าย" : "จ่ายแล้ว") + '">' + ico("i-check") + "</button>" +
+        '<button class="iact" data-act="edit" aria-label="แก้ไขรายการ" title="แก้ไข">' + ico("i-pencil", "ic-sm") + "</button>" +
       "</span>";
+    row.style.setProperty("--i", String(Math.min(n++, 10)));
     box.appendChild(row);
   }
 
@@ -1824,6 +1954,7 @@ function addFromTemplate(t){
 function render(){
   if (state.page === "loan") { renderLoan(); return; }
   renderStatement();
+  renderDueBar();
   renderFilters();
   renderList();
   renderDonut();
@@ -2055,6 +2186,7 @@ function setPage(page){
   el("mCopyPrev").hidden = page !== "bills";
   el("mBudget").hidden   = page !== "bills";
   closePicker();
+  feedOnce = true;
   render();
   window.scrollTo(0, 0);
 }
@@ -2128,11 +2260,10 @@ el("lnList").addEventListener("click", e => {
   lnDlg.showModal();
 });
 
-lnDlg.addEventListener("close", () => {
+onDialogResult(lnDlg, v => {
   const it = db.loan.entries.find(x => x.id === state.lnEditId);
   state.lnEditId = null;
   if (!it) return;
-  const v = lnDlg.returnValue;
   if (v === "save") {
     it.type   = lnEdType;
     it.date   = el("lnEdDate").value || it.date;
@@ -2519,10 +2650,30 @@ el("qaForm").addEventListener("submit", e => {
   });
 });
 
+el("addToggle").addEventListener("click", () => {
+  const form = el("qaForm");
+  const open = form.classList.toggle("open");
+  el("addToggle").setAttribute("aria-expanded", open ? "true" : "false");
+  el("addToggleTxt").textContent = open ? "ปิดฟอร์ม" : "เพิ่มรายการ";
+  if (open) setTimeout(() => el("qaName").focus(), 30);
+});
+
 /* ==========================================================
    15. การกระทำในรายการ
    ========================================================== */
 el("list").addEventListener("click", e => {
+  const em = e.target.closest("[data-empty]");
+  if (em) {
+    const what = em.dataset.empty;
+    if (what === "clear") { state.filter = "all"; render(); }
+    else if (what === "pull") pullTemplates();
+    else {
+      const form = el("qaForm");
+      if (!form.classList.contains("open")) el("addToggle").click();
+      el("qaName").focus();
+    }
+    return;
+  }
   const row = e.target.closest(".slip");
   if (!row) return;
   const it = db.items.find(i => i.id === row.dataset.id);
@@ -2549,22 +2700,26 @@ el("list").addEventListener("click", e => {
       });
       break;
     }
-    case "tpl": {
-      const exists = db.templates.find(t => t.name === it.name && t.cat === it.cat);
-      if (exists) { toast("มีบิลประจำชื่อนี้อยู่แล้ว"); return; }
-      const t = { id:uid(), cat:it.cat, name:it.name || cat(it.cat).name, amount:it.amount, due:it.due || null };
-      db.templates.push(t);
-      it.tpl = t.id;
-      save(); render();
-      toast("ตั้ง " + t.name + " เป็นบิลประจำแล้ว", "เลิกทำ", () => {
-        db.templates = db.templates.filter(x => x.id !== t.id);
-        delete it.tpl;
-        save(); render();
-      });
-      break;
-    }
   }
 });
+
+/** ตั้งรายการนี้เป็นบิลประจำ เพื่อดึงกลับมาใช้ในเดือนถัดๆ ไป */
+function makeTemplateFrom(it){
+  if (db.templates.find(t => t.name === it.name && t.cat === it.cat)) {
+    toast("มีบิลประจำชื่อนี้อยู่แล้ว");
+    return;
+  }
+  const t = { id:uid(), cat:it.cat, name:it.name || cat(it.cat).name,
+              amount:it.amount, due:it.due || null };
+  db.templates.push(t);
+  it.tpl = t.id;
+  save(); render();
+  toast("ตั้ง " + t.name + " เป็นบิลประจำแล้ว", "เลิกทำ", () => {
+    db.templates = db.templates.filter(x => x.id !== t.id);
+    delete it.tpl;
+    save(); render();
+  });
+}
 
 /* ==========================================================
    16. Dialog แก้ไขรายการ
@@ -2582,15 +2737,15 @@ function openEdit(it){
   for (const x of $$("[data-t]", el("edPaidSeg")))
     x.setAttribute("aria-pressed", x.dataset.t === edPaidVal ? "true" : "false");
   el("edNote").value = it.note || "";
+  el("edTpl").hidden = !!db.templates.find(t => t.name === it.name && t.cat === it.cat);
   editDlg.showModal();
   setTimeout(() => el("edName").focus(), 30);
 }
-editDlg.addEventListener("close", () => {
+onDialogResult(editDlg, v => {
   closeAllCsel();
   const it = db.items.find(i => i.id === state.editingId);
   state.editingId = null;
   if (!it) return;
-  const v = editDlg.returnValue;
 
   if (v === "save") {
     it.name   = el("edName").value.trim() || cat(el("edCat").value).name;
@@ -2601,6 +2756,8 @@ editDlg.addEventListener("close", () => {
     it.note   = el("edNote").value.trim();
     save(); render();
     toast("บันทึกแล้ว");
+  } else if (v === "tpl") {
+    makeTemplateFrom(it);
   } else if (v === "delete") {
     const idx = db.items.indexOf(it);
     db.items.splice(idx, 1);
@@ -2647,9 +2804,8 @@ el("tplList").addEventListener("click", e => {
   openTpl(t);
 });
 
-tplDlg.addEventListener("close", () => {
+onDialogResult(tplDlg, v => {
   closeAllCsel();
-  const v  = tplDlg.returnValue;
   const id = state.editingTpl;
   state.editingTpl = null;
   if (v === "cancel" || v === "") return;
@@ -2830,7 +2986,7 @@ el("mReset").onclick = () => {
 /* ==========================================================
    19. นำทางเดือน + ธีม + คีย์ลัด
    ========================================================== */
-function goMonth(k){ state.ym = shiftYm(state.ym, k); state.filter = "all"; closePicker(); render(); }
+function goMonth(k){ state.ym = shiftYm(state.ym, k); state.filter = "all"; feedOnce = true; closePicker(); render(); }
 el("prevM").onclick  = () => goMonth(-1);
 el("nextM").onclick  = () => goMonth(1);
 el("todayBtn").onclick = () => { state.ym = ymOf(new Date()); state.filter = "all"; render(); };
