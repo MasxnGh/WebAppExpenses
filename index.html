@@ -217,6 +217,7 @@ h1,h2,h3,p{margin:0}
 .syncpill[data-state="busy"]{color:var(--warn)}
 .syncpill[data-state="busy"] .sicon{animation:spin 1.1s linear infinite}
 .syncpill[data-state="err"]{color:var(--danger)}
+.syncpill[data-state="wait"]{color:var(--warn)}          /* ส่งไม่สำเร็จ รอลองใหม่เอง — ไอคอนไม่หมุน ไม่ได้กำลังทำงาน */
 @keyframes spin{to{transform:rotate(360deg)}}
 
 /* ---------- ไอคอน: เส้น 2px หัวมน กรอบ 24x24 ---------- */
@@ -452,7 +453,9 @@ aside > .card + .card{margin-top:0}
 
 /* ---------- ฟอร์มเพิ่มรายการ ---------- */
 /* จอใหญ่: สองแถว — หมวด + ชื่อ / จำนวนเงิน + วันครบกำหนด + ปุ่ม ชื่อรายการจะได้กว้างพอพิมพ์ */
-.quickadd{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 10px;align-items:end;
+/* ชิดบน ไม่ใช่ชิดล่าง: ข้อความผิดใต้ช่องเงินจะได้ดันแค่แถวให้สูงขึ้น ช่องข้างๆ กับปุ่มไม่หล่นลงไปไม่ตรงแนว
+   ปุ่มบันทึกไม่มีป้าย จึงมีป้ายล่องหน (::before) สูงเท่าป้ายช่องอื่นให้ตัวปุ่มตรงกับช่องกรอก */
+.quickadd{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px 10px;align-items:start;
   padding:4px 20px 16px}
 #qaForm > .field{grid-column:span 2}
 #qaForm > .f-name{grid-column:span 4}
@@ -483,7 +486,7 @@ input.inp.amt{font-variant-numeric:tabular-nums;text-align:right;font-weight:600
   border-color:color-mix(in srgb,var(--danger) 32%,transparent)}
 @media (hover:hover) and (pointer:fine){.btn.danger:hover{background:var(--danger);color:#FFFFFF;border-color:var(--danger);filter:none}}
 .btn.sm{height:38px;padding:0 16px;font-size:14px;border-radius:12px}
-.qa-submit{align-self:end}
+.qa-submit::before{content:"\00a0";font-size:13px;font-weight:500;margin-bottom:6px;visibility:hidden}
 
 /* ---------- ตัวกรอง ---------- */
 .filters{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:4px 20px 12px}
@@ -525,6 +528,12 @@ input.inp.amt{font-variant-numeric:tabular-nums;text-align:right;font-weight:600
 /* จ่ายครบทุกรายการ: ช่วงฉลองเล็กๆ ที่เกิดเดือนละครั้ง — ไอคอนเด้งขึ้นจากเบลอ */
 @keyframes cheer{from{scale:calc(1 - .5 * var(--m));filter:blur(2px);opacity:0}}
 .duebar.cheer .ic{animation:cheer var(--spring-check) .12s backwards}
+/* ค้างจากเดือนก่อน: ทั้งแถบเป็นปุ่มเดียว แตะแล้วไปเดือนนั้นพร้อมกรองเฉพาะที่ค้าง */
+.oldbar{width:calc(100% - 40px);text-align:left;transition:background-color var(--t-overlay),scale var(--spring-press)}
+.oldbar>span{flex:1;min-width:0}
+.oldbar .go{flex:none;display:inline-flex;align-items:center;gap:2px;font-weight:600;color:var(--danger)}
+.oldbar:hover{background:color-mix(in srgb,var(--danger) 15%,var(--surface))}
+.oldbar:active{scale:calc(1 - .02 * var(--m))}
 
 .slip{
   display:grid;grid-template-columns:44px minmax(0,1fr) auto auto;align-items:center;gap:14px;
@@ -555,6 +564,7 @@ input.inp.amt{font-variant-numeric:tabular-nums;text-align:right;font-weight:600
 @media (hover:hover) and (pointer:fine){.slip:hover .duetag:not(.soon):not(.late){background:var(--surface)}}
 .duetag.soon{color:var(--warn);background:color-mix(in srgb,var(--meter) 17%,transparent)}
 .duetag.late{color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,transparent)}
+.duetag.est{background:transparent;box-shadow:inset 0 0 0 1px var(--line-strong)}
 .note-i{color:var(--muted);display:flex}
 .samt{font-variant-numeric:tabular-nums;font-size:16px;font-weight:600;letter-spacing:-.01em;
   text-align:right;min-width:92px;white-space:nowrap}
@@ -726,6 +736,24 @@ button.lg[aria-pressed="true"]{background:var(--accent-soft)}
 .bcol.hit .stack{background:color-mix(in srgb,var(--ok-fill) 30%,transparent)}
 .bcol.hit .stack .in{background:linear-gradient(180deg,var(--ok-fill),var(--ok))}
 .bcol.hit.cur .vv{background:var(--ok);box-shadow:0 8px 16px -8px var(--ok)}
+/* สรุปทั้งปี: รวม เฉลี่ย แยกหมวด และเดือนที่สูงกว่าปกติ */
+.yr-kv{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.yr-kv>div{background:var(--surface-2);border-radius:14px;padding:10px 12px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.yr-kv .l{font-size:12.5px;color:var(--muted)}
+.yr-kv b{font-size:18px;font-weight:600;font-variant-numeric:tabular-nums;color:var(--ink);white-space:nowrap}
+.yr-kv b small{font-size:12.5px;font-weight:400;color:var(--muted)}
+.yr-cats{display:flex;flex-direction:column;gap:10px}
+.yr-cat{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:5px 10px;align-items:center;font-size:13.5px}
+.yr-cat .nm{display:flex;align-items:center;gap:8px;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--ink-2)}
+.yr-cat .dot{width:10px;height:10px;border-radius:50%;background:var(--c);flex:none}
+.yr-cat .v{font-variant-numeric:tabular-nums;font-weight:600;text-align:right;white-space:nowrap}
+.yr-cat .v small{color:var(--muted);font-weight:400;margin-left:6px}
+.yr-track{grid-column:1/-1;display:block;height:6px;border-radius:var(--pill);background:var(--surface-2);overflow:hidden}
+.yr-track i{display:block;height:100%;width:var(--w);border-radius:inherit;background:var(--c)}
+.yr-high{margin-top:16px;padding-top:14px;border-top:1px solid var(--line);font-size:13px;line-height:1.6;color:var(--muted)}
+.yr-high:empty{display:none}
+.yr-high b{color:var(--ink);font-weight:600}
+.yr-high .chips{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px}
 .bars-key{display:flex;align-items:center;gap:8px;margin-top:14px;font-size:12.5px;color:var(--muted)}
 .bars-key .dot{width:10px;height:10px;border-radius:50%;background:var(--ok-fill);flex:none}
 .bars-empty{padding:18px 4px 6px;font-size:13.5px;line-height:1.65;color:var(--muted);text-align:center}
@@ -799,6 +827,7 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
 .menu-item.destructive .mi{color:var(--danger);background:color-mix(in srgb,var(--danger) 12%,transparent)}
 .menu-item b{display:block;font-size:14.5px;font-weight:500}
 .menu-item small{display:block;color:var(--muted);font-size:12.5px;line-height:1.45}
+.menu-item small.warn{color:var(--warn)}   /* ยังไม่เคยสำรอง หรือสำรองไว้นานเกิน 30 วัน */
 .menu-item:disabled{opacity:.55;cursor:default}
 .menu-item:disabled:hover{background:none}
 
@@ -931,6 +960,7 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
   .card-head{padding:16px 16px 10px}
   .card-body{padding:4px 16px 18px}
   .duebar{margin:0 16px 12px}
+  .oldbar{width:calc(100% - 32px)}
   .filters{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:2px 16px 12px}
   .filters::-webkit-scrollbar{display:none}
   .filters .chip{flex:none}
@@ -969,6 +999,7 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
   #qaForm .sheet-head h3{font-size:18px;font-weight:600}
   #qaForm > .field{grid-column:auto}
   #qaForm > .f-cat,#qaForm > .f-name,#qaForm > .qa-submit{grid-column:1/-1}
+  #qaForm .qa-submit::before{display:none}           /* แผ่นมือถือ: ปุ่มอยู่แถวของตัวเอง ไม่ต้องเว้นที่ป้าย */
   #qaForm .inp{height:50px}
   #qaForm #qaAmt{font-size:19px}
   #qaForm .qa-submit .btn{width:100%;height:50px;font-size:15px;border-radius:14px}
@@ -1230,6 +1261,7 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
           <span class="hint" id="listHint"></span>
         </div>
 
+        <button class="duebar late oldbar" id="oldBar" type="button" hidden></button>
         <div class="duebar" id="dueBar" hidden></div>
 
         <form class="quickadd" id="qaForm" autocomplete="off" aria-label="เพิ่มรายการค่าใช้จ่าย">
@@ -1247,7 +1279,8 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
           </div>
           <div class="field">
             <label for="qaAmt">จำนวนเงิน (บาท)</label>
-            <input class="inp amt" id="qaAmt" type="text" inputmode="decimal" placeholder="0.00">
+            <input class="inp amt" id="qaAmt" type="text" inputmode="decimal" placeholder="0.00" aria-describedby="qaAmtErr">
+            <p class="ferr" id="qaAmtErr" hidden></p>
           </div>
           <div class="field">
             <label for="qaDue">ครบกำหนด</label>
@@ -1292,6 +1325,18 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
       <section class="card" id="barsCard" data-mv="stats">
         <div class="card-head"><h2>ย้อนหลัง 6 เดือน</h2><span class="hint">เลือกแท่งเพื่อดูเดือนนั้น</span></div>
         <div class="card-body"><div class="bars" id="bars"></div></div>
+      </section>
+
+      <section class="card" id="yearCard" data-mv="stats" hidden>
+        <div class="card-head"><h2 id="yrTitle">สรุปทั้งปี</h2><span class="hint" id="yrHint"></span></div>
+        <div class="card-body">
+          <div class="yr-kv">
+            <div><span class="l">รวมทั้งปี</span><b><span id="yrTotal">0</span> <small>บาท</small></b></div>
+            <div><span class="l" id="yrAvgL">เฉลี่ยต่อเดือน</span><b><span id="yrAvg">0</span> <small>บาท</small></b></div>
+          </div>
+          <div class="yr-cats" id="yrCats"></div>
+          <div class="yr-high" id="yrHigh"></div>
+        </div>
       </section>
 
       <section class="card" data-mv="home">
@@ -1416,6 +1461,7 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
         <div class="set-row set-where" id="sWhere"><span class="mi" id="sWhereI"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-shield"></use></svg></span><span class="mt"><b id="sWhereT">เก็บไว้ในเครื่องนี้</b><small id="sWhereD"></small></span></div>
         <button class="menu-item" id="mExportJson" type="button"><span class="mi"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-download"></use></svg></span><span class="mt"><b>สำรองข้อมูล (.json)</b><small id="sBackupD"></small></span><span class="mi-end"><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"></use></svg></span></button>
         <button class="menu-item" id="mImport" type="button"><span class="mi"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-upload"></use></svg></span><span class="mt"><b>กู้คืนจากไฟล์สำรอง</b><small>เลือกไฟล์ .json ที่เคยสำรองไว้ ข้อมูลในเครื่องนี้จะถูกแทนที่</small></span><span class="mi-end"><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"></use></svg></span></button>
+        <button class="menu-item" id="mUndo" type="button" hidden><span class="mi"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-refresh"></use></svg></span><span class="mt"><b id="sUndoT">ย้อนข้อมูลกลับ</b><small id="sUndoD"></small></span><span class="mi-end"><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"></use></svg></span></button>
         <button class="menu-item" id="mExportCsv" type="button"><span class="mi"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mt"><b>ส่งออกบิลเป็น CSV</b><small>ทุกเดือน เปิดใน Excel / Google Sheets ได้ทันที</small></span><span class="mi-end"><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"></use></svg></span></button>
         <button class="menu-item" id="mLoanCsv" type="button"><span class="mi"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-file"></use></svg></span><span class="mt"><b>ส่งออกสมุดคืนเงินเป็น CSV</b><small>ทุกรายการคืนและยืม พร้อมยอดค้างหลังแต่ละรายการ</small></span><span class="mi-end"><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"></use></svg></span></button>
         <button class="menu-item" id="mPrint" type="button"><span class="mi"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-printer"></use></svg></span><span class="mt"><b>พิมพ์ / บันทึกเป็น PDF</b><small id="sPrintD"></small></span><span class="mi-end"><svg class="ic" aria-hidden="true"><use href="#i-chevron-right"></use></svg></span></button>
@@ -1439,7 +1485,7 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
     <section class="set-group" aria-labelledby="sgDanger">
       <h2 class="set-h" id="sgDanger">ล้างข้อมูล</h2>
       <div class="card set-card">
-        <button class="menu-item destructive" id="mReset" type="button"><span class="mi"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-trash"></use></svg></span><span class="mt"><b>ล้างข้อมูลทั้งหมด</b><small>ลบรายการค่าใช้จ่าย บิลประจำ งบ และสมุดคืนเงิน ย้อนกลับไม่ได้</small></span></button>
+        <button class="menu-item destructive" id="mReset" type="button"><span class="mi"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-trash"></use></svg></span><span class="mt"><b>ล้างข้อมูลทั้งหมด</b><small>ลบรายการค่าใช้จ่าย บิลประจำ งบ และสมุดคืนเงิน · เครื่องนี้เก็บสำเนาไว้ให้ย้อนกลับได้ 14 วัน</small></span></button>
       </div>
     </section>
   </div>
@@ -1466,7 +1512,7 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
       <div class="field"><label for="edName">ชื่อรายการ</label><input class="inp" id="edName" type="text"></div>
       <div class="row2">
         <div class="field"><label for="edCat">หมวด</label><select class="inp" id="edCat"></select></div>
-        <div class="field"><label for="edAmt">จำนวนเงิน</label><input class="inp amt" id="edAmt" type="text" inputmode="decimal"></div>
+        <div class="field"><label for="edAmt">จำนวนเงิน</label><input class="inp amt" id="edAmt" type="text" inputmode="decimal" aria-describedby="edAmtErr"><p class="ferr" id="edAmtErr" hidden></p></div>
       </div>
       <div class="row2">
         <div class="field"><label for="edDue">ครบกำหนด (วันที่)</label><input class="inp amt" id="edDue" type="number" min="1" max="31"></div>
@@ -1477,13 +1523,14 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
           </div>
         </div>
       </div>
+      <div class="field" id="edPaidOnF" hidden><label for="edPaidOn">วันที่จ่าย</label><input class="inp" id="edPaidOn" type="date"></div>
       <div class="field"><label for="edNote">โน้ต (เช่น เลขมิเตอร์)</label><textarea class="inp" id="edNote"></textarea></div>
     </div>
     <div class="dlg-foot">
       <button class="btn danger sm" id="edDelete" value="delete" type="submit">ลบรายการ</button>
       <button class="btn ghost sm spacer" id="edTpl" value="tpl" type="submit">ตั้งเป็นบิลประจำ</button>
       <button class="btn ghost sm" value="cancel" type="submit">ยกเลิก</button>
-      <button class="btn sm" value="save" type="submit">บันทึก</button>
+      <button class="btn sm" id="edOk" value="save" type="submit">บันทึก</button>
     </div>
   </form>
 </dialog>
@@ -1493,17 +1540,17 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
   <form method="dialog">
     <div class="dlg-head"><h3 id="tplTitle">เพิ่มบิลประจำ</h3><button class="iact" value="cancel" aria-label="ปิด"><svg class="ic ic-sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
     <div class="dlg-body">
-      <div class="field"><label for="tpName">ชื่อบิล</label><input class="inp" id="tpName" type="text" placeholder="เช่น ค่าอินเทอร์เน็ต AIS Fibre"></div>
+      <div class="field"><label for="tpName">ชื่อบิล</label><input class="inp" id="tpName" type="text" placeholder="เช่น ค่าอินเทอร์เน็ต AIS Fibre" aria-describedby="tpNameErr"><p class="ferr" id="tpNameErr" hidden>ใส่ชื่อบิลก่อน</p></div>
       <div class="row2">
         <div class="field"><label for="tpCat">หมวด</label><select class="inp" id="tpCat"></select></div>
-        <div class="field"><label for="tpAmt">ยอดประจำ</label><input class="inp amt" id="tpAmt" type="text" inputmode="decimal" placeholder="0.00"></div>
+        <div class="field"><label for="tpAmt">ยอดประจำ</label><input class="inp amt" id="tpAmt" type="text" inputmode="decimal" placeholder="0.00" aria-describedby="tpAmtErr"><p class="ferr" id="tpAmtErr" hidden></p></div>
       </div>
       <div class="field"><label for="tpDue">ครบกำหนดทุกวันที่</label><input class="inp amt" id="tpDue" type="number" min="1" max="31" placeholder="เช่น 15"></div>
     </div>
     <div class="dlg-foot">
       <button class="btn danger sm spacer" id="tpDelete" value="delete" type="submit">ลบ</button>
       <button class="btn ghost sm" value="cancel" type="submit">ยกเลิก</button>
-      <button class="btn sm" value="save" type="submit">บันทึก</button>
+      <button class="btn sm" id="tpOk" value="save" type="submit">บันทึก</button>
     </div>
   </form>
 </dialog>
@@ -1553,7 +1600,7 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
       </div>
       <div class="field"><label for="lnPlAcc">ยืมจาก <small>(ไม่บังคับ)</small></label><input class="inp" id="lnPlAcc" type="text" maxlength="40" placeholder="เช่น บัญชีออมทรัพย์" autocomplete="off"></div>
       <div class="row2">
-        <div class="field"><label for="lnPlInst">คืนเดือนละ (บาท)</label><input class="inp amt" id="lnPlInst" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off"></div>
+        <div class="field"><label for="lnPlInst">คืนเดือนละ (บาท)</label><input class="inp amt" id="lnPlInst" type="text" inputmode="decimal" placeholder="0.00" autocomplete="off" aria-describedby="lnPlInstErr"><p class="ferr" id="lnPlInstErr" hidden></p></div>
         <div class="field"><label for="lnPlDay">ทุกวันที่</label><input class="inp amt" id="lnPlDay" type="number" min="1" max="31" inputmode="numeric" placeholder="เช่น 25"></div>
       </div>
       <p class="ln-after" id="lnPlPrev" aria-live="polite"></p>
@@ -1573,7 +1620,8 @@ textarea.inp{height:auto;min-height:72px;padding:11px 14px;resize:vertical;line-
       <p id="askMsg" class="ask-msg"></p>
       <div class="field" id="askField">
         <label for="askInput" id="askLabel">ค่า</label>
-        <input class="inp amt" id="askInput" type="text" inputmode="decimal">
+        <input class="inp amt" id="askInput" type="text" inputmode="decimal" aria-describedby="askErr">
+        <p class="ferr" id="askErr" hidden></p>
       </div>
     </div>
     <div class="dlg-foot">
@@ -1629,146 +1677,417 @@ try {
 } catch (e) { storageOK = false; }
 
 /* หน้าคืนเงิน: target = ยอดคืนต่อเดือน (งวด), dueDay = ครบทุกวันที่ (0 = สิ้นเดือน),
-   startYm = เดือนของงวดแรก — รายการ open = ยอดยกมาตอนเริ่ม, adj = ปรับยอดจากกล่องแผน (ไม่นับเป็นการคืน) */
-const blankLoan = () => ({ account:"", target:0, dueDay:0, startYm:"", entries:[] });
+   startYm = เดือนของงวดแรก, planFrom = วันที่ตั้ง/เปลี่ยนงวด (ยอดคืนตั้งแต่วันนี้นับเข้างวด)
+   — รายการ open = ยอดยกมาตอนเริ่ม, adj = ปรับยอดจากกล่องแผน (ไม่นับเป็นการคืน) */
+const blankLoan = () => ({ account:"", target:0, dueDay:0, startYm:"", planFrom:"", entries:[] });
 const blank = () => ({ v:1, items:[], templates:[], loan:blankLoan(), settings:{ budget:0, theme:"" } });
+
+/* ---------- ทำความสะอาดข้อมูล ----------
+   ข้อมูลทุกทางที่เข้ามา (เปิดแอป กู้คืนจากไฟล์ รับจากการซิงค์) ผ่านตรงนี้ก่อนเสมอ:
+   แปลงชนิดให้ถูก ปัดเงินเป็นสตางค์ วันครบกำหนดต้องเป็น 1–31 สร้างออบเจกต์ใหม่ทุกตัว (ของที่ซิงค์มาแก้ตรงๆ ไม่ได้)
+   ข้อมูลเสียรายการเดียวจะได้ไม่ทำให้ทั้งแอปเปิดไม่ขึ้น — รายการที่ใช้ไม่ได้จริงๆ ถูกข้ามและนับไว้ */
+const YM_RE  = /^\d{4}-(0[1-9]|1[0-2])$/;
+const ISO_RE = /^\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+const isObj  = x => !!x && typeof x === "object" && !Array.isArray(x);
+const str    = (v, max) => (typeof v === "string" ? v : v == null ? "" : String(v)).slice(0, max || 2000);
+/** เงินที่เก็บไว้: ตัวเลขไม่ติดลบ ปัดเป็นสตางค์ ("1,000" ที่เป็นข้อความก็อ่านได้) — ติดลบถือว่าพิมพ์เครื่องหมายเกินมา */
+const money  = v => { const n = Math.abs(typeof v === "number" ? v : parseAmount(v)); return isFinite(n) ? r2(n) : 0; };
+const day31  = v => { const n = typeof v === "number" || typeof v === "string" ? Math.round(Number(v)) : NaN; return n >= 1 && n <= 31 ? n : null; };
+let migratedPlan = false;            // เพิ่งเติม planFrom ให้แผนที่ตั้งก่อนมีช่องนี้ — ต้องบันทึก/ส่งขึ้นอีกรอบ
+
+function cleanId(v, ids){
+  let id = str(v, 80);
+  if (!id || ids.has(id)) id = uid();
+  ids.add(id);
+  return id;
+}
+function cleanItems(arr, ids, bad){
+  const out = [];
+  for (const x of Array.isArray(arr) ? arr : []) {
+    if (!isObj(x) || !YM_RE.test(x.ym)) { bad.n++; continue; }      // ไม่รู้ว่าเป็นของเดือนไหน แสดงที่ไหนก็ไม่ได้
+    const it = Object.assign({}, x, {
+      id: cleanId(x.id, ids), ym: x.ym, cat: CATMAP[x.cat] ? x.cat : "ot", name: str(x.name),
+      amount: money(x.amount), due: day31(x.due), paid: !!x.paid, note: str(x.note), ts: Number(x.ts) || 0
+    });
+    if (typeof x.tpl === "string" && x.tpl) it.tpl = x.tpl; else delete it.tpl;
+    if (it.paid && ISO_RE.test(x.paidOn)) it.paidOn = x.paidOn; else delete it.paidOn;   // วันที่ติ๊กจ่ายจริง
+    if (x.est === true) it.est = true; else delete it.est;                               // ยอดยกมาจากเดือนก่อน ยังไม่ใช่ยอดจริง
+    out.push(it);
+  }
+  return out;
+}
+function cleanTemplates(arr, bad){
+  const out = [], ids = new Set();
+  for (const x of Array.isArray(arr) ? arr : []) {
+    if (!isObj(x)) { bad.n++; continue; }
+    const c = CATMAP[x.cat] ? x.cat : "ot";
+    out.push(Object.assign({}, x, { id: cleanId(x.id, ids), cat: c, name: str(x.name) || CATMAP[c].name,
+                                    amount: money(x.amount), due: day31(x.due) }));
+  }
+  return out;
+}
+function cleanLoan(x, bad){
+  const l = isObj(x) ? x : {}, entries = [], ids = new Set();
+  for (const e of Array.isArray(l.entries) ? l.entries : []) {
+    if (!isObj(e)) { bad.n++; continue; }
+    const c = Object.assign({}, e, { id: cleanId(e.id, ids), date: ISO_RE.test(e.date) ? e.date : "",
+      type: e.type === "out" ? "out" : "back", amount: money(e.amount), memo: str(e.memo, 80), ts: Number(e.ts) || 0 });
+    delete c._bal;                                   // ยอดสะสมคำนวณใหม่ทุกครั้ง ไม่เก็บ
+    if (e.open) c.open = true; else delete c.open;
+    if (e.adj)  c.adj  = true; else delete c.adj;
+    entries.push(c);
+  }
+  const out = Object.assign(blankLoan(), l, {
+    account: str(l.account, 40), target: money(l.target), dueDay: day31(l.dueDay) || 0,
+    startYm: YM_RE.test(l.startYm) ? l.startYm : "", planFrom: ISO_RE.test(l.planFrom) ? l.planFrom : "", entries
+  });
+  // แผนที่ตั้งก่อนมี planFrom และงวดแรกยังไม่ถึง: ตอนตั้งแผนเดือนนี้ยังไม่มีการคืนเลย (เงื่อนไขของ planStart)
+  // ยอดคืนหลังวันครบของเดือนนี้จึงเป็นการคืนล่วงหน้าให้งวดแรกแน่นอน
+  if (!out.planFrom && out.target > 0 && out.startYm && out.startYm > ymOf(new Date())) {
+    out.planFrom = cycleStartIso(out.startYm, out.dueDay);
+    migratedPlan = true;
+  }
+  return out;
+}
+function cleanSettings(s){
+  const x = isObj(s) ? s : {};
+  return Object.assign({}, x, { budget: money(x.budget), theme: x.theme === "light" || x.theme === "dark" ? x.theme : "" });
+}
+/** คืน { db, bad } — bad = จำนวนรายการที่อ่านไม่ได้และถูกข้าม */
+function cleanDb(d){
+  const bad = { n:0 }, x = isObj(d) ? d : {};
+  const out = { v:1, items: cleanItems(x.items, new Set(), bad), templates: cleanTemplates(x.templates, bad),
+                loan: cleanLoan(x.loan, bad), settings: cleanSettings(x.settings) };
+  return { db: out, bad: bad.n };
+}
 
 /* ความสามารถพิเศษเมื่อเปิดผ่านลิงก์ที่เผยแพร่ (บันทึกไฟล์ผ่านตัวจัดการของ claude.ai) */
 const dlCap = (typeof window.claude === "object" && window.claude && typeof window.claude.use === "function")
   ? window.claude.use("downloads").catch(() => null)
   : Promise.resolve(null);
 
+let loadSkipped = 0;                 // เปิดแอปแล้วเจอข้อมูลที่อ่านไม่ได้กี่รายการ (บอกผู้ใช้ตอนเริ่ม)
 function load(){
   if (!storageOK) return blank();
+  let raw = null;
   try {
-    const raw = localStorage.getItem(KEY);
+    raw = localStorage.getItem(KEY);
     if (!raw) return blank();
-    const d = JSON.parse(raw);
-    return {
-      v: 1,
-      items: Array.isArray(d.items) ? d.items : [],
-      templates: Array.isArray(d.templates) ? d.templates : [],
-      loan: Object.assign(blankLoan(), d.loan || {}),
-      settings: Object.assign({ budget:0, theme:"" }, d.settings || {})
-    };
-  } catch (e) { return blank(); }
+    const c = cleanDb(JSON.parse(raw));
+    if (c.bad) {
+      // เก็บของเดิมทั้งก้อนไว้อีกคีย์ก่อนบันทึกทับ เผื่อต้องกู้ด้วยมือ
+      loadSkipped = c.bad;
+      try { localStorage.setItem(KEY + ".skipped", raw); } catch (e) {}
+    }
+    return c.db;
+  } catch (e) {
+    // อ่านไม่ออกทั้งก้อน: เก็บสำเนาไว้ก่อน ไม่งั้นการบันทึกครั้งถัดไปจะเขียนทับจนหายถาวร
+    if (raw) { loadSkipped = -1; try { localStorage.setItem(KEY + ".skipped", raw); } catch (e2) {} }
+    return blank();
+  }
 }
 
 let db = load();
+
+/* base = ลายนิ้วมือของสิ่งที่เซิร์ฟเวอร์มีแน่ๆ ต่อเอกสาร ("months/2026-11", "meta/main") ใช้ตอนซิงค์ (ดู 2b)
+   จดลงเครื่องคู่กับข้อมูล ของที่แก้แล้วยังส่งไม่ทันจึงไม่หายเมื่อปิดแอปแล้วเปิดใหม่
+   ข้อมูลในเครื่องหายหรืออ่านไม่ได้บางส่วน = ไม่เชื่อ base เดิม ไม่งั้นจะเอาของที่เสียไปลบของดีบนเซิร์ฟเวอร์ */
+let base = readBase();
+function readBase(){
+  const none = { m:false, docs:{} };           // m = เคยรับรายการทุกเดือนจากเซิร์ฟเวอร์ครบแล้วอย่างน้อยหนึ่งครั้ง
+  if (!storageOK) return none;
+  try {
+    // ลบของเก่าทิ้งเลย ไม่งั้นถ้าปิดแอปก่อนซิงค์ทัน เปิดครั้งหน้าจะกลับมาเชื่อ base เดิมอีก
+    if (loadSkipped || !localStorage.getItem(KEY)) { localStorage.removeItem(KEY + ".sync"); return none; }
+    const b = JSON.parse(localStorage.getItem(KEY + ".sync") || "null");
+    if (!isObj(b) || !isObj(b.docs)) return none;
+    const docs = {};
+    for (const k of Object.keys(b.docs))
+      if (typeof b.docs[k] === "string" && /^(months\/\d{4}-\d{2}|meta\/main)$/.test(k)) docs[k] = b.docs[k];
+    return { m: b.m === true, docs };
+  } catch (e) { return none; }
+}
+
 let saveTimer = null;
+function writeLocal(){
+  clearTimeout(saveTimer);
+  saveTimer = null;
+  if (!storageOK) return;
+  try {
+    localStorage.setItem(KEY, JSON.stringify(db));
+    // base ลงหลังข้อมูลเสมอ: ถ้าหน้าถูกปิดกลางทาง ข้อมูลใหม่ + base เก่า = แค่ส่งซ้ำ แต่กลับกันจะส่งของเก่าไปทับของใหม่
+    if (store) localStorage.setItem(KEY + ".sync", JSON.stringify(base));
+  } catch (e) { storageOK = false; el("storageWarn").hidden = false; }
+}
 function saveLocal(){
   if (!storageOK) return;
   clearTimeout(saveTimer);
-  saveTimer = setTimeout(() => {
-    try { localStorage.setItem(KEY, JSON.stringify(db)); }
-    catch (e) { storageOK = false; el("storageWarn").hidden = false; }
-  }, 120);
+  saveTimer = setTimeout(writeLocal, 120);
 }
 function save(){ saveLocal(); schedulePush(); }
+
+// สลับแอป ล็อกจอ ปิดแท็บ: บันทึกและส่งทันที ไม่รอตัวหน่วงเวลา — มือถือมักปิดหน้าที่อยู่เบื้องหลังทิ้งโดยไม่บอก
+function flushNow(){
+  if (saveTimer) writeLocal();
+  if (sync.pushTimer) pushRemote();
+}
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushNow(); });
+window.addEventListener("pagehide", flushNow);
 
 /* ==========================================================
    2b. ซิงค์ข้ามเครื่อง (ทำงานเฉพาะตอนเปิดผ่านลิงก์ที่เผยแพร่)
    เก็บรายการแยกเป็นเดือนละหนึ่งชุด + อีกชุดสำหรับบิลประจำและงบ
    ธีมไม่ซิงค์ ให้แต่ละเครื่องเลือกเองได้
    ========================================================== */
+/* กันข้อมูลหาย:
+   - base.docs[เอกสาร] = ลายนิ้วมือของสิ่งที่เซิร์ฟเวอร์มีแน่ๆ จดหลังเขียนสำเร็จ หรือหลังได้ snapshot ตัวจริงเท่านั้น
+   - เอกสารที่ในเครื่องไม่ตรงกับ base = มีของที่ยังไม่ได้ส่ง ห้ามเอาของจากเซิร์ฟเวอร์มาทับ เดี๋ยวส่งขึ้นไปเอง
+     (ชนกันจริงกับอีกเครื่อง = ของที่ส่งทีหลังชนะทั้งเอกสาร เหมือนเดิม)
+   - เขียนทีละครั้งต่อเอกสาร ระหว่างรอแก้เพิ่มได้ เสร็จแล้วค่อยส่งของล่าสุด · ส่งไม่ผ่านก็ลองใหม่เอง
+   - snapshot ที่ยังไม่ใช่ของจริง (fromCache) หรือเป็นของที่เครื่องนี้เพิ่งเขียน (hasPendingWrites) ไม่เอามาใช้
+   - ตัวฟังที่ตาย (เช่น เครื่องหลับนาน) เปิดใหม่เอง ไม่งั้นจะไม่เห็นการแก้จากเครื่องอื่นจนกว่าจะเปิดแอปใหม่ */
 let store = null;
-let syncing = false;                 // true ระหว่างรับข้อมูลจากเซิร์ฟเวอร์ — ห้ามเขียนกลับ
-let gotMonths = false, gotMeta = false;
-let pushTimer = null;
-const pushed = { months:{}, meta:null };
+const META = "meta/main";
+const sync = {
+  months:false, meta:false,    // ได้ snapshot ตัวจริงชุดแรกแล้ว — ก่อนนั้นยังไม่ส่งอะไรขึ้นไป
+  slow:false,                  // ผ่านไป 10 วินาทีแล้วยังไม่ได้ของจริง
+  dead:"",                     // เหตุที่หยุดซิงค์ถาวร (ถูกถอนสิทธิ์ ฯลฯ)
+  hard:"",                     // ส่งไม่ผ่านแบบที่ลองซ้ำก็ไม่ช่วย — รอการแก้ครั้งถัดไป
+  inflight:{},                 // เอกสาร → ลายนิ้วมือที่กำลังเขียน
+  fixed:{},                    // ส่งของที่ทำความสะอาดแล้วกลับขึ้นไปครั้งเดียวต่อสถานะเซิร์ฟเวอร์ (กันส่งวนไม่รู้จบ)
+  unsub:[],
+  pushTimer:null, retryTimer:null, retryN:0
+};
+const DEAD = ["revoked", "not_granted", "capability_disabled", "capability_removed"];
+const HARD = ["invalid_argument", "quota_exceeded", "transform_error"];
 const metaBody = () => ({ templates: db.templates, loan: db.loan,
                           settings: { budget: Number(db.settings.budget) || 0 } });
+const isCache = s => !!(s && s.metadata && s.metadata.fromCache);
+const isMine  = s => !!(s && s.metadata && s.metadata.hasPendingWrites);
+const jitter  = n => Math.min(60000, 2000 * 2 ** Math.min(n, 5)) * (0.75 + Math.random() * 0.5);
 
-function syncState(state, text){
+/* ลายนิ้วมือของเนื้อเอกสาร: JSON ที่เรียงชื่อฟิลด์ก่อน (เซิร์ฟเวอร์อาจสลับลำดับฟิลด์) ย่อเป็นแฮช 53 บิต + ความยาว
+   "" = ไม่มีเอกสารนี้ */
+function canon(v){
+  if (Array.isArray(v)) return "[" + v.map(canon).join(",") + "]";
+  if (v && typeof v === "object")
+    return "{" + Object.keys(v).filter(k => v[k] !== undefined).sort()
+      .map(k => JSON.stringify(k) + ":" + canon(v[k])).join(",") + "}";
+  return v === undefined ? "null" : JSON.stringify(v);
+}
+function fp(body){
+  if (body == null) return "";
+  const s = canon(body);
+  let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for (let i = 0; i < s.length; i++) {
+    const c = s.charCodeAt(i);
+    h1 = Math.imul(h1 ^ c, 2654435761);
+    h2 = Math.imul(h2 ^ c, 1597334677);
+  }
+  h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+  h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+  return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36) + "." + s.length.toString(36);
+}
+// เดือน: เก็บแค่ที่มีเอกสาร ("" = ไม่มี ลบทิ้งได้) · meta เก็บ "" ไว้ด้วย = รู้แน่ว่าเซิร์ฟเวอร์ยังไม่มี
+function setBase(k, h){ if (h || k === META) base.docs[k] = h; else delete base.docs[k]; }
+
+// เนื้อเอกสารทุกชิ้นตามข้อมูลในเครื่องตอนนี้ (เดือนที่ไม่มีรายการ = ไม่มีเอกสาร)
+function localDocs(){
+  const out = {};
+  for (const i of db.items) { const k = "months/" + i.ym; (out[k] = out[k] || { items:[] }).items.push(i); }
+  out[META] = metaBody();
+  return out;
+}
+// เอกสารที่ในเครื่องต่างจากที่เซิร์ฟเวอร์มี = ยังไม่ได้ส่ง
+function unsent(docs){
+  const keys = new Set([...Object.keys(docs), ...Object.keys(base.docs)]);
+  return [...keys].filter(k => fp(docs[k]) !== (base.docs[k] || ""));
+}
+
+function syncState(st, text, why){
   const p = el("syncPill");
   p.hidden = false;
-  p.dataset.state = state;
-  const name = state === "err" ? "i-alert" : state === "busy" ? "i-refresh" : "i-check-circle";
+  p.dataset.state = st;
+  const name = st === "err" ? "i-alert" : st === "ok" ? "i-check-circle" : "i-refresh";
   p.querySelector(".sicon").firstElementChild.setAttribute("href", "#" + name);
   el("syncTxt").textContent = text;
+  p.title = why || "";
 }
-function onSyncErr(e){
-  const code = (e && e.code) || "unavailable";
-  if (code === "unavailable") return;          // เดี๋ยวมันต่อกลับเอง
-  syncState("err", "ซิงค์ไม่ได้");
+function paintSync(){
+  if (!store) return;
+  const keep = "ข้อมูลที่แก้บันทึกไว้ในเครื่องนี้แล้ว";
+  if (sync.dead) syncState("err", "ซิงค์ไม่ได้", "การซิงค์หยุดแล้ว " + keep + " เปิดลิงก์ใหม่เพื่อซิงค์อีกครั้ง");
+  else if (!(sync.months && sync.meta))
+    sync.slow ? syncState("err", "ยังต่อไม่ได้", keep + " จะส่งให้เครื่องอื่นเองเมื่อต่อได้")
+              : syncState("busy", "กำลังเชื่อมต่อ");
+  else if (sync.hard) syncState("err", "ซิงค์ไม่ได้", (sync.hard === "quota_exceeded"
+              ? "ที่เก็บข้อมูลของลิงก์นี้เต็ม " : "ส่งข้อมูลขึ้นไปไม่ได้ ") + keep);
+  else if (sync.retryTimer) syncState("wait", "รอส่งใหม่", "ส่งไม่สำเร็จ แอปจะลองใหม่เอง " + keep);
+  else if (sync.pushTimer || Object.keys(sync.inflight).length) syncState("busy", "กำลังซิงค์");
+  else syncState("ok", "ซิงค์แล้ว");
+  paintWhere();
 }
 
 function schedulePush(){
-  if (!store) return;
-  clearTimeout(pushTimer);
-  pushTimer = setTimeout(pushRemote, 350);
+  if (!store || sync.dead) return;
+  clearTimeout(sync.pushTimer);
+  sync.pushTimer = setTimeout(pushRemote, 350);
+  paintSync();
+}
+function pushRemote(){
+  clearTimeout(sync.pushTimer);
+  sync.pushTimer = null;
+  if (!store || sync.dead || !(sync.months && sync.meta)) { paintSync(); return; }
+  const docs = localDocs();
+  for (const k of unsent(docs))
+    if (!(k in sync.inflight)) writeDoc(k, docs[k] || null);   // ทีละครั้งต่อเอกสาร ที่กำลังเขียนอยู่ เสร็จแล้วจะกลับมาดูใหม่
+  paintSync();
+}
+function writeDoc(k, body){
+  const h = fp(body);
+  sync.inflight[k] = h;
+  sync.hard = "";
+  let job;
+  try {
+    const ref = store.doc(k);
+    job = body ? ref.set(JSON.parse(JSON.stringify(body))) : ref.delete();   // ส่งสำเนา ไม่ส่งตัวที่แอปยังแก้อยู่
+  } catch (e) { job = Promise.reject(e); }
+  job.then(() => {
+    delete sync.inflight[k];
+    setBase(k, h);                       // จดว่าเซิร์ฟเวอร์มีแล้ว — หลังสำเร็จเท่านั้น
+    sync.retryN = 0;
+    saveLocal();
+    pushRemote();                        // ระหว่างรออาจมีการแก้เพิ่ม ส่งของล่าสุดต่อ
+  }, e => {
+    delete sync.inflight[k];
+    const code = (e && e.code) || (e instanceof Error ? "invalid_argument" : "unavailable");
+    if (DEAD.includes(code)) stopSync(code);
+    else if (HARD.includes(code)) { sync.hard = code; paintSync(); }
+    else retryLater();                   // unavailable / resource_exhausted / รหัสที่ไม่รู้จัก
+  });
+}
+function retryLater(){
+  if (!sync.retryTimer) sync.retryTimer = setTimeout(retryNow, jitter(sync.retryN++));
+  paintSync();
+}
+function retryNow(){
+  clearTimeout(sync.retryTimer);
+  sync.retryTimer = null;
+  pushRemote();
+}
+// เน็ตกลับมา หรือกลับมาเปิดแอป: ลองส่งทันที ไม่ต้องรอครบเวลา
+window.addEventListener("online", () => { if (sync.retryTimer) retryNow(); });
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && sync.retryTimer) retryNow();
+});
+function stopSync(code){
+  sync.dead = code;
+  clearTimeout(sync.pushTimer);
+  clearTimeout(sync.retryTimer);
+  sync.pushTimer = sync.retryTimer = null;
+  sync.unsub.forEach(u => { try { u(); } catch (e) {} });
+  if (!storageOK) el("storageWarn").hidden = false;
+  paintSync();
 }
 
-function pushRemote(){
-  pushTimer = null;
-  if (!store || syncing || !(gotMonths && gotMeta)) return;
+// ฟังเอกสาร/คอลเลกชัน — ตัวฟังที่ตายด้วย unavailable ต้องเปิดใหม่เอง (เป็นทางเดียวตามคู่มือของที่เก็บข้อมูล)
+function listen(ref, next){
+  let tries = 0;
+  const open = () => {
+    if (sync.dead) return;
+    try {
+      sync.unsub.push(ref.onSnapshot(s => { tries = 0; if (!sync.dead) next(s); }, e => {
+        const code = (e && e.code) || "unavailable";
+        if (sync.dead) return;
+        if (DEAD.includes(code) || code === "invalid_argument" || code === "transform_error") return stopSync(code);
+        setTimeout(open, jitter(tries++));
+      }));
+    } catch (e) { stopSync("invalid_argument"); }
+  };
+  open();
+}
 
-  const byMonth = {};
-  for (const i of db.items) (byMonth[i.ym] = byMonth[i.ym] || []).push(i);
-  for (const ym of Object.keys(pushed.months)) if (!byMonth[ym]) byMonth[ym] = [];
-
-  const jobs = [];
-  for (const ym of Object.keys(byMonth)) {
-    const json = JSON.stringify(byMonth[ym]);
-    if (pushed.months[ym] === json) continue;
-    pushed.months[ym] = json;
-    const ref = store.doc("months/" + ym);
-    jobs.push(byMonth[ym].length ? ref.set({ items:byMonth[ym] }) : ref.delete());
+function onMonths(snap){
+  if (isCache(snap)) return;             // สำเนาเก่าหรือช่วงเน็ตหลุด ยังไม่ใช่ของจริง — รอตัวจริง
+  const local = localDocs();
+  delete local[META];
+  const server = {};
+  for (const d of snap.docs) server["months/" + d.id] = d;
+  if (!base.m) {
+    // ครั้งแรกบนเครื่องนี้ ยังไม่รู้ว่าเคยส่งอะไรไปแล้ว: เซิร์ฟเวอร์ว่าง = ส่งของในเครื่องขึ้นไป / ไม่ว่าง = เชื่อเซิร์ฟเวอร์
+    for (const k of Object.keys(local)) setBase(k, snap.empty ? "" : fp(local[k]));
+    base.m = true;
   }
-  const meta = metaBody();
-  const metaJson = JSON.stringify(meta);
-  if (pushed.meta !== metaJson) { pushed.meta = metaJson; jobs.push(store.doc("meta/main").set(meta)); }
 
-  if (!jobs.length) return;
-  syncState("busy", "กำลังซิงค์");
-  Promise.all(jobs).then(
-    () => syncState("ok", "ซิงค์แล้ว"),
-    err => onSyncErr(err)
-  );
+  const take = {};                       // เดือนที่จะเอาของจากเซิร์ฟเวอร์ (null = เดือนนั้นถูกลบไปแล้ว)
+  const keys = new Set([...Object.keys(local), ...Object.keys(server),
+                        ...Object.keys(base.docs).filter(k => k !== META)]);
+  for (const k of keys) {
+    const d = server[k];
+    if (k in sync.inflight || (d && isMine(d))) continue;     // เครื่องนี้กำลังเขียนอยู่ รอผลการเขียนเอง
+    const s = d ? fp(d.data()) : "", l = fp(local[k]);
+    if (s === l) { setBase(k, s); continue; }
+    if (l !== (base.docs[k] || "")) continue;                  // ในเครื่องมีของที่ยังไม่ได้ส่ง ห้ามทับ
+    take[k] = d ? (d.data() || {}).items : null;
+    setBase(k, s);
+  }
+
+  if (Object.keys(take).length) {
+    const keep = db.items.filter(i => !(("months/" + i.ym) in take));
+    const ids = new Set(keep.map(i => i.id)), bad = { n:0 };
+    const byM = {};
+    for (const i of keep) (byM[i.ym] = byM[i.ym] || []).push(i);
+    for (const k of Object.keys(take)) if (take[k])
+      for (const i of cleanItems(take[k], ids, bad)) (byM[i.ym] = byM[i.ym] || []).push(i);
+    db.items = Object.keys(byM).sort().flatMap(ym => byM[ym]);
+    // ทำความสะอาดแล้วไม่ตรงกับของบนเซิร์ฟเวอร์: ส่งของที่สะอาดกลับขึ้นไปครั้งเดียว ถ้ายังไม่ตรงอีกก็ยอมรับ
+    const now = localDocs();
+    for (const k of Object.keys(take)) {
+      const s = base.docs[k] || "", nl = fp(now[k]);
+      if (nl === s) continue;
+      if (sync.fixed[k] === s) setBase(k, nl); else sync.fixed[k] = s;
+    }
+    render();
+  }
+  sync.months = true;
+  saveLocal();
+  schedulePush();                        // ส่งของที่ค้าง (แก้ตอนออฟไลน์ / ปิดแอปก่อนส่งทัน / ทำความสะอาดแล้ว)
+}
+
+function onMeta(snap){
+  if (isCache(snap)) return;
+  if (!(META in sync.inflight) && !isMine(snap)) {
+    const l = fp(metaBody()), s = snap.exists ? fp(snap.data()) : "", b = base.docs[META];
+    if (s === l) setBase(META, s);
+    else if (!snap.exists) setBase(META, "");                  // เซิร์ฟเวอร์ยังไม่มี: ส่งของในเครื่องขึ้นไป
+    else if (b === undefined || l === b) {
+      // ไม่มีของค้างส่ง (หรือเครื่องนี้ยังไม่เคยซิงค์ = เชื่อเซิร์ฟเวอร์): เอาของจากเซิร์ฟเวอร์
+      const d = snap.data() || {}, bad = { n:0 };
+      migratedPlan = false;
+      if (Array.isArray(d.templates)) db.templates = cleanTemplates(d.templates, bad);
+      if (d.loan) db.loan = cleanLoan(d.loan, bad);
+      db.settings.budget = money(d.settings && d.settings.budget);
+      migratedPlan = false;
+      setBase(META, s);
+      // แผนคืนเงินเก่าเพิ่งได้ planFrom ฯลฯ: ส่งกลับขึ้นไปครั้งเดียว ทุกเครื่องจะได้ใช้ค่าเดียวกัน
+      const nl = fp(metaBody());
+      if (nl !== s) { if (sync.fixed[META] === s) setBase(META, nl); else sync.fixed[META] = s; }
+      render();
+    }
+    // ไม่งั้น: ในเครื่องมีของยังไม่ได้ส่ง ห้ามทับ
+  }
+  sync.meta = true;
+  saveLocal();
+  schedulePush();
 }
 
 function startSync(s){
   store = s;
-  syncState("busy", "กำลังเชื่อมต่อ");
   if (!storageOK) el("storageWarn").hidden = true;   // ข้อมูลปลอดภัยแล้วถึงเบราว์เซอร์จะเก็บไม่ได้
-
-  store.collection("months").onSnapshot(snap => {
-    const first = !gotMonths;
-    gotMonths = true;
-    // ครั้งแรกและเซิร์ฟเวอร์ยังว่าง: ส่งข้อมูลที่มีอยู่ในเครื่องขึ้นไปแทนที่จะลบทิ้ง
-    if (first && snap.empty && db.items.length) { schedulePush(); return; }
-    if (pushTimer) return;   // มีการแก้ในเครื่องที่ยังไม่ได้ส่งขึ้น รอส่งให้เสร็จก่อน
-
-    const items = [];
-    const seen = {};
-    for (const d of snap.docs) {
-      const arr = (d.data() || {}).items;
-      if (Array.isArray(arr)) items.push(...arr);
-      seen[d.id] = JSON.stringify(Array.isArray(arr) ? arr : []);
-    }
-    syncing = true;
-    db.items = items;
-    Object.assign(pushed.months, seen);
-    for (const ym of Object.keys(pushed.months)) if (!(ym in seen)) delete pushed.months[ym];
-    syncing = false;
-    saveLocal(); render();
-    syncState("ok", "ซิงค์แล้ว");
-  }, onSyncErr);
-
-  store.doc("meta/main").onSnapshot(snap => {
-    const first = !gotMeta;
-    gotMeta = true;
-    if (!snap.exists) { if (first) schedulePush(); return; }
-
-    const d = snap.data() || {};
-    syncing = true;
-    if (Array.isArray(d.templates)) db.templates = d.templates;
-    if (d.loan) db.loan = Object.assign(blankLoan(), d.loan);
-    db.settings.budget = Number(d.settings && d.settings.budget) || 0;
-    pushed.meta = JSON.stringify(metaBody());
-    syncing = false;
-    saveLocal(); render();
-  }, onSyncErr);
+  setTimeout(() => { sync.slow = true; paintSync(); }, 10000);
+  paintSync();
+  listen(store.collection("months"), onMonths);
+  listen(store.doc(META), onMeta);
 }
 
 /* ==========================================================
@@ -1776,7 +2095,8 @@ function startSync(s){
    ========================================================== */
 const el  = id => document.getElementById(id);
 const $$  = (s, r) => Array.from((r || document).querySelectorAll(s));
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+/* function (ไม่ใช่ const) เพราะตัวทำความสะอาดข้อมูลเรียกใช้ตั้งแต่ตอนโหลด ก่อนบรรทัดนี้จะทำงาน */
+function uid(){ return Date.now().toString(36) + Math.random().toString(36).slice(2, 7); }
 
 /* ---------- การเคลื่อนไหว — ค่าทุกตัวอ่านจากตัวแปร CSS ใน :root ที่เดียว (DESIGN.md › การเคลื่อนไหว) ---------- */
 const reduceMQ = matchMedia("(prefers-reduced-motion: reduce)");
@@ -1898,14 +2218,30 @@ function flipRows(box, before){
   }
 }
 
-const fmt = n => (Math.round((Number(n) || 0) * 100) / 100)
-  .toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 });
-const fmt0 = n => Math.round(Number(n) || 0).toLocaleString("en-US");
+/** ปัดเป็นสตางค์ — "|| 0" กันค่า -0 ที่ทำให้จอขึ้น "-0.00" */
+function r2(n){ return Math.round((Number(n) || 0) * 100) / 100 || 0; }
+const fmt = n => r2(n).toLocaleString("en-US", { minimumFractionDigits:2, maximumFractionDigits:2 });
+const fmt0 = n => (Math.round(Number(n) || 0) || 0).toLocaleString("en-US");
 
+/** เลขไทย ๐–๙ เป็นเลขอารบิก */
+function thDigits(s){ return String(s).replace(/[๐-๙]/g, c => String(c.charCodeAt(0) - 0x0E50)); }
 function parseAmount(s){
-  const n = parseFloat(String(s == null ? "" : s).replace(/[^0-9.\-]/g, ""));
+  const n = parseFloat(thDigits(s == null ? "" : s).replace(/[^0-9.\-]/g, ""));
   return isFinite(n) ? n : 0;
 }
+/** อ่านช่องจำนวนเงินแบบเคร่ง: ว่าง = 0 · รับคอมมา ฿ "บาท" เลขไทย · ปัดเป็นสตางค์
+ *  คืน { v } หรือ { err: "neg" | "nan" } (ข้อความใน MONEY_ERR) */
+function readMoney(s){
+  const t = thDigits(s == null ? "" : s).replace(/[\s,฿]|บาท/g, "");
+  if (!t) return { v:0, empty:true };
+  if (/^[-−–]/.test(t)) return { err:"neg" };
+  if (!/^(\d+\.?\d*|\.\d+)$/.test(t)) return { err:"nan" };
+  return { v: r2(parseFloat(t)) };
+}
+const MONEY_ERR = {
+  neg: "ไม่ต้องใส่เครื่องหมายลบ ใส่จำนวนเงินตามจริง",
+  nan: "ใส่เป็นตัวเลข เช่น 1,250 หรือ 1,250.50"
+};
 function ymOf(d){ return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
 function shiftYm(ym, k){
   const [y, m] = ym.split("-").map(Number);
@@ -1953,7 +2289,7 @@ let donutFresh = true, prevArcs = null;   // โดนัท: วาดใหม
 const freshIds = new Set();        // แถวที่เพิ่งเพิ่ม/กู้คืน — สว่างขึ้นครั้งเดียวให้เห็นว่าไปลงตรงไหน
 let settleTimer = 0, sheetTimer = 0, enterTimer = 0;          // เล่นแอนิเมชันป้อนกระดาษเฉพาะตอนเปิดหน้า/เปลี่ยนเดือน
 const itemsOf = ym => db.items.filter(i => i.ym === ym);
-const sum = arr => arr.reduce((a, i) => a + (Number(i.amount) || 0), 0);
+const sum = arr => r2(arr.reduce((a, i) => a + (Number(i.amount) || 0), 0));
 
 /* ==========================================================
    5. ธีม
@@ -2059,7 +2395,15 @@ function onDialogResult(dlg, fn){
 }
 
 const askDlg = el("askDlg");
-let askPending = null;
+let askPending = null, askCheck = null;
+enterSubmits(askDlg, "askOk");
+el("askInput").addEventListener("input", () => clearErr("askInput", "askErr"));
+// o.check(ค่าที่พิมพ์) คืนข้อความผิด หรือ "" ถ้าผ่าน — ไม่ผ่านแล้วบอกใต้ช่อง กล่องไม่ปิด
+guardDialog(askDlg, () => {
+  const m = askCheck ? askCheck(el("askInput").value) : "";
+  if (m) showErr("askInput", "askErr", m);
+  return !m;
+});
 onDialogResult(el("askDlg"), v => { if (askPending) askPending(v); });
 
 function ask(o){
@@ -2070,6 +2414,8 @@ function ask(o){
     el("askField").hidden      = !o.input;
     el("askLabel").textContent = o.label || "";
     el("askInput").value       = o.value || "";
+    askCheck = o.input && o.check ? o.check : null;
+    clearErr("askInput", "askErr");
     const ok = el("askOk");
     ok.textContent = o.okText || "ตกลง";
     ok.className   = "btn sm" + (o.danger ? " danger" : "");
@@ -2160,11 +2506,30 @@ function renderStatement(){
   countTo(el("kDue"), due, fmt);
   el("kCount").textContent = list.length + " รายการ";
 
-  // เทียบเดือนก่อน
-  const prev = sum(itemsOf(shiftYm(state.ym, -1)));
+  // เทียบเดือนก่อน — ต้นเดือนใส่บิลไปแค่สองสามใบ เทียบยอดรวมตรงๆ จะขึ้น ▼70% ทั้งที่ยังไม่ได้ใส่ครบ
+  // เดือนนี้ (หรือเดือนหน้า) ที่ยังขาดบิลที่เดือนก่อนมี จึงเทียบเฉพาะบิลที่มีทั้งสองเดือน แล้วบอกว่ายังขาดอะไร
+  const prevYm = shiftYm(state.ym, -1);
+  const prev = sum(itemsOf(prevYm));
   const sub  = el("stmtSub");
+  const prevMon = TH_MONTHS_SHORT[ymParts(prevYm).m - 1];
+  const gap = state.ym >= ymOf(new Date()) ? billGap(list, itemsOf(prevYm)) : null;
   sub.innerHTML = "";
-  if (prev > 0 && total > 0) {
+  if (gap && gap.missing.length && total > 0 && prev > 0) {
+    const miss = gap.missing.slice(0, 2).join(", ") + (gap.missing.length > 2 ? " และอีก " + (gap.missing.length - 2) + " รายการ" : "");
+    if (gap.prev > 0 && gap.cur > 0) {
+      const pct = ((gap.cur - gap.prev) / gap.prev) * 100, flat = Math.abs(pct) < 0.5;
+      const d = document.createElement("span");
+      d.className = "delta " + (flat ? "flat" : pct > 0 ? "up" : "down");
+      d.textContent = (flat ? "≈ " : pct > 0 ? "▲ " : "▼ ") + Math.abs(pct).toFixed(1) + "%";
+      sub.appendChild(d);
+      const txt = document.createElement("span");
+      txt.textContent = "เทียบเฉพาะ " + gap.shared + " รายการที่มีเหมือน " + prevMon + " (" + fmt0(gap.prev) + " บาท)";
+      sub.appendChild(txt);
+    }
+    const note = document.createElement("span");
+    note.textContent = (sub.childNodes.length ? "· " : "") + "ยังไม่ได้ใส่ยอด " + miss;
+    sub.appendChild(note);
+  } else if (prev > 0 && total > 0) {
     const pct = ((total - prev) / prev) * 100;
     const d = document.createElement("span");
     const flat = Math.abs(pct) < 0.5;
@@ -2205,6 +2570,23 @@ function biggestMover(ym){
     if (!best || Math.abs(diff) > Math.abs(best.diff)) best = { cat:id, diff };
   }
   return best && Math.abs(best.diff) >= 1 ? best : null;
+}
+/** บิลไหนของเดือนก่อนที่เดือนนี้ยังไม่มียอดจริง และยอดของบิลที่มีทั้งสองเดือน
+ *  บิลใบเดียวกัน = ดึงจากบิลประจำใบเดียวกัน หรือหมวดกับชื่อตรงกัน
+ *  ยอด 0 (ดึงมาแต่ยังไม่เติม) กับยอดที่ยกมาจากเดือนก่อนแต่ยังไม่จ่าย ยังไม่นับว่าใส่แล้ว */
+function billGap(cur, prv){
+  const nk = i => i.cat + "|" + nameKey(i.name);
+  const real = i => i.amount > 0 && !(i.est && !i.paid);
+  const c = cur.filter(real), p = prv.filter(real);
+  const cT = new Set(c.map(i => i.tpl).filter(Boolean)), cN = new Set(c.map(nk));
+  const pT = new Set(p.map(i => i.tpl).filter(Boolean)), pN = new Set(p.map(nk));
+  const inCur = i => (i.tpl && cT.has(i.tpl)) || cN.has(nk(i));
+  const inPrv = i => (i.tpl && pT.has(i.tpl)) || pN.has(nk(i));
+  const sc = c.filter(inPrv);
+  return {
+    missing: [...new Set(p.filter(i => !inCur(i)).map(i => i.name || cat(i.cat).name))],
+    shared: sc.length, cur: sum(sc), prev: sum(p.filter(inCur))
+  };
 }
 function byCat(list){
   const o = {};
@@ -2276,17 +2658,52 @@ function visibleItems(){
   });
 }
 
+/** วันครบกำหนดจริงในเดือนของรายการ — ตั้งวันที่ 31 แต่เดือนนั้นมี 30 วัน = วันสุดท้ายของเดือน */
+const dueDayOf = it => Math.min(it.due, daysInMonth(it.ym));
+const dueText  = it => it.due > daysInMonth(it.ym) ? "สิ้นเดือน" : "วันที่ " + it.due;
+
 function dueState(item){
   if (item.paid || !item.due) return "";
-  const now = new Date();
-  if (ymOf(now) !== state.ym) return ymOf(now) > state.ym ? "late" : "";
-  const diff = item.due - now.getDate();
+  const now = new Date(), ym = item.ym || state.ym;
+  if (ymOf(now) !== ym) return ymOf(now) > ym ? "late" : "";
+  const diff = dueDayOf(item) - now.getDate();
   if (diff < 0) return "late";
   if (diff <= 3) return "soon";
   return "";
 }
 
+/** บิลที่ยังไม่ติ๊กจ่ายจากเดือนก่อนๆ — เปิดแอปมาเห็นแต่เดือนนี้ ของที่ค้างจากเดือนที่แล้วจึงถูกลืมเงียบๆ
+ *  ดูย้อนไป 3 เดือนก่อนเดือนที่เปิดอยู่ (ไม่เกินเดือนจริง เดือนนี้ยังไม่นับว่าค้าง) เรียงเก่าสุดก่อน */
+function olderUnpaid(){
+  const now = ymOf(new Date());
+  const cap = state.ym < now ? state.ym : now;
+  const out = [];
+  for (let k = 3; k >= 1; k--) {
+    const ym = shiftYm(cap, -k);
+    const un = itemsOf(ym).filter(i => !i.paid);
+    if (un.length) out.push({ ym, n: un.length, amt: sum(un) });
+  }
+  return out;
+}
+function renderOldBar(){
+  const bar = el("oldBar");
+  const old = olderUnpaid();
+  if (!old.length) { bar.hidden = true; return; }
+  const n = old.reduce((a, o) => a + o.n, 0), amt = r2(old.reduce((a, o) => a + o.amt, 0));
+  const mon = o => TH_MONTHS_SHORT[ymParts(o.ym).m - 1];
+  const from = old.length === 1 ? mon(old[0]) : mon(old[0]) + "–" + mon(old[old.length - 1]);
+  bar.dataset.ym = old[0].ym;
+  bar.innerHTML = ico("i-alert", "ic-sm") +
+    "<span>ยังค้างจาก <b>" + escapeHtml(from) + " " + n + " รายการ</b>" +
+      (amt > 0 ? " รวม <b>" + fmt0(amt) + "</b> บาท" : "") + "</span>" +
+    '<span class="go">ไปดู' + ico("i-chevron-right", "ic-xs") + "</span>";
+  bar.setAttribute("aria-label", "ยังค้างจ่ายจาก " + from + " " + n + " รายการ" +
+    (amt > 0 ? " รวม " + fmt0(amt) + " บาท" : "") + " — ไปดูเดือน" + TH_MONTHS[ymParts(old[0].ym).m - 1]);
+  bar.hidden = false;
+}
+
 function renderDueBar(){
+  renderOldBar();
   const bar = el("dueBar");
   const list = itemsOf(state.ym);
   if (!list.length) { bar.hidden = true; return; }
@@ -2313,7 +2730,7 @@ function renderDueBar(){
     tail = " · <b>เลยกำหนดแล้ว " + late.length + " รายการ</b>";
   } else if (head) {
     tail = " · ใกล้สุดคือ <b>" + escapeHtml(head.name || cat(head.cat).name) +
-           '</b> <span class="when">วันที่ ' + head.due + "</span>";
+           '</b> <span class="when">' + escapeHtml(dueText(head)) + "</span>";
   }
   // ยอด 0 มักแปลว่าเพิ่งดึงบิลประจำมาแต่ยังไม่ได้เติมยอดจริง บอกตรงๆ ดีกว่าโชว์ "รวม 0 บาท"
   const head2 = owed > 0
@@ -2329,10 +2746,10 @@ function renderDueBar(){
 function dueLabel(it, ds){
   if (ds === "late") return "เลยกำหนด";
   if (ds === "soon") {
-    const left = it.due - new Date().getDate();
+    const left = dueDayOf(it) - new Date().getDate();
     return left <= 0 ? "ครบวันนี้" : "อีก " + left + " วัน";
   }
-  return "วันที่ " + it.due;
+  return dueText(it);
 }
 
 /** วาดรายการใหม่แบบไม่กระตุก: แถวเดิมเลื่อนไปที่ใหม่ แถวใหม่ลอยขึ้น แถวที่หายจางออก (ยกเว้นตอนไหลเข้าทั้งชุด) */
@@ -2351,12 +2768,25 @@ function paintPaid(row, it){
     b.setAttribute("aria-pressed", it.paid ? "true" : "false");
     b.title = it.paid ? "จ่ายแล้ว — กดอีกครั้งเพื่อยกเลิก" : "ติ๊กว่าจ่ายแล้ว";
   }
-  const tag = row.querySelector(".duetag");
-  if (tag && it.due) { const ds = dueState(it); tag.className = "duetag " + ds; tag.textContent = dueLabel(it, ds); }
+  const sub = row.querySelector(".ssub");
+  if (sub) { sub.querySelectorAll(".duetag").forEach(n => n.remove()); sub.insertAdjacentHTML("afterbegin", rowTags(it)); }
+}
+/** ป้ายใต้ชื่อรายการ: จ่ายแล้ว = วันที่จ่ายจริง · ยังไม่จ่าย = กำหนดจ่าย และบอกถ้ายอดยังเป็นของเดือนก่อน */
+function rowTags(it){
+  let h = "";
+  if (it.paid && it.paidOn) {
+    const p = it.paidOn.split("-");
+    h += '<span class="duetag">จ่าย ' + Number(p[2]) + " " + TH_MONTHS_SHORT[Number(p[1]) - 1] + "</span>";
+  } else if (it.due) {
+    const ds = dueState(it);
+    h += '<span class="duetag ' + ds + '">' + escapeHtml(dueLabel(it, ds)) + "</span>";
+  }
+  if (it.est && !it.paid) h += '<span class="duetag est" title="ยกยอดมาจากเดือนก่อน — แตะแถวเพื่อใส่ยอดจริง">ยอดเดือนก่อน</span>';
+  return h;
 }
 /** ทุกอย่างในหน้าบิลยกเว้นตัวรายการ */
 function renderAround(){
-  renderStatement(); renderDueBar(); renderFilters(); renderDonut(); renderBars(); renderTemplates();
+  renderStatement(); renderDueBar(); renderFilters(); renderDonut(); renderBars(); renderYear(); renderTemplates();
   const unpaidN = itemsOf(state.ym).filter(i => !i.paid).length;
   el("listHint").textContent = unpaidN ? "ค้างจ่าย " + unpaidN + " รายการ" : "จ่ายครบแล้ว ✓";
   fitHeroArt();
@@ -2406,10 +2836,7 @@ function buildList(){
     row.dataset.id = it.id;
     if (freshIds.delete(it.id)) row.classList.add("is-new");
 
-    const ds = dueState(it);
-    const dueHtml = it.due
-      ? '<span class="duetag ' + ds + '">' + dueLabel(it, ds) + "</span>"
-      : "";
+    const dueHtml = rowTags(it);
 
     // สองบรรทัด: ชื่อด้านบน ป้ายกำหนดจ่ายกับโน้ตด้านล่าง ยอดเงินชิดขวา — ชื่อยาวแค่ไหนก็ไม่ทับตัวเลข
     row.innerHTML =
@@ -2565,6 +2992,70 @@ function renderBars(){
   growBars(box, hs);
 }
 
+/** สรุปทั้งปีของเดือนที่เปิดอยู่ — รวม เฉลี่ยต่อเดือน แยกหมวด และเดือนที่สูงกว่าปกติ
+ *  เฉลี่ยกับค่ากลางใช้แค่เดือนที่จบแล้ว (เดือนนี้ยังใส่ไม่ครบ จะดึงตัวเลขลง) แต่เดือนนี้ที่สูงเกินแล้วก็ยังเตือน */
+function renderYear(){
+  const card = el("yearCard");
+  const y = ymParts(state.ym).y, now = ymOf(new Date());
+  const months = [];
+  for (let m = 1; m <= 12; m++) {
+    const ym = y + "-" + pad2(m), list = itemsOf(ym), total = sum(list);
+    if (total > 0) months.push({ ym, m, list, total });
+  }
+  card.hidden = months.length < 2;              // เดือนเดียวก็คือการ์ดโดนัทซ้ำ
+  if (card.hidden) return;
+
+  const total = r2(months.reduce((a, x) => a + x.total, 0));
+  const done = months.filter(x => x.ym < now);
+  const base = done.length ? done : months;
+  const avg = r2(base.reduce((a, x) => a + x.total, 0) / base.length);
+  el("yrTitle").textContent = "สรุปปี " + beYear(y);
+  el("yrHint").textContent = TH_MONTHS_SHORT[months[0].m - 1] + "–" + TH_MONTHS_SHORT[months[months.length - 1].m - 1] +
+    " · มีรายการ " + months.length + " เดือน";
+  el("yrTotal").textContent = fmt0(total);
+  el("yrAvg").textContent = fmt0(avg);
+  el("yrAvgL").textContent = base.length < months.length ? "เฉลี่ย " + base.length + " เดือนที่จบแล้ว" : "เฉลี่ยต่อเดือน";
+
+  const by = {};
+  for (const x of months) for (const i of x.list) by[i.cat] = (by[i.cat] || 0) + (Number(i.amount) || 0);
+  const ids = Object.keys(by).filter(k => by[k] > 0).sort((a, b) => by[b] - by[a]);
+  const top = by[ids[0]] || 1;
+  el("yrCats").innerHTML = ids.map(k => {
+    const c = cat(k), v = r2(by[k]);
+    return '<div class="yr-cat" style="--c:' + c.color + ";--w:" + (v / top * 100).toFixed(1) + '%">' +
+      '<span class="nm"><span class="dot"></span>' + escapeHtml(c.name) + "</span>" +
+      '<span class="v">' + fmt0(v) + "<small>" + Math.round(v / total * 100) + "%</small></span>" +
+      '<span class="yr-track"><i></i></span></div>';
+  }).join("");
+
+  // สูงกว่าปกติ = เกินค่ากลางของเดือนที่จบแล้ว 30% และเกินอย่างน้อย 300 บาท (ต้องมีอย่างน้อย 3 เดือนให้เทียบ)
+  const hi = el("yrHigh");
+  hi.innerHTML = "";
+  if (done.length < 3) return;
+  const s = done.map(x => x.total).sort((a, b) => a - b), h = s.length >> 1;
+  const mid = s.length % 2 ? s[h] : (s[h - 1] + s[h]) / 2;
+  const highs = months.filter(x => x.total > mid * 1.3 && x.total - mid >= 300);
+  if (!highs.length) {
+    hi.innerHTML = "ไม่มีเดือนไหนสูงผิดปกติ — ปกติจ่ายราว <b>" + fmt0(mid) + "</b> บาท/เดือน";
+    return;
+  }
+  hi.innerHTML = "<b>" + highs.length + " เดือนจ่ายสูงกว่าปกติ</b> (ปกติราว " + fmt0(mid) + " บาท/เดือน)";
+  const row = document.createElement("div");
+  row.className = "chips";
+  for (const x of highs) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "chip";
+    b.setAttribute("aria-pressed", x.ym === state.ym ? "true" : "false");
+    b.textContent = TH_MONTHS_SHORT[x.m - 1] + " " + fmt0(x.total) + " (+" + Math.round((x.total - mid) / mid * 100) + "%)";
+    b.setAttribute("aria-label", "ดูเดือน" + TH_MONTHS[x.m - 1] + " " + fmt0(x.total) + " บาท สูงกว่าปกติ " +
+      Math.round((x.total - mid) / mid * 100) + "%");
+    b.onclick = () => { state.ym = x.ym; state.filter = "all"; render(); };
+    row.appendChild(b);
+  }
+  hi.appendChild(row);
+}
+
 /* ==========================================================
    11. บิลประจำ
    ========================================================== */
@@ -2605,21 +3096,36 @@ function pullTemplates(){
   if (!db.templates.length) { toast("ยังไม่มีบิลประจำ — เพิ่มได้ที่การ์ด “บิลประจำ”"); return; }
   if (!add.length) { toast("บิลประจำทุกรายการอยู่ในเดือนนี้แล้ว"); return; }
   const ids = add.map(t => addFromTemplate(t));
+  const nEst = db.items.filter(i => i.est && ids.includes(i.id)).length;
   save(); render();
-  toast("เพิ่ม " + add.length + " รายการจากบิลประจำ", "เลิกทำ", () => {
+  toast("เพิ่ม " + add.length + " รายการจากบิลประจำ" + (nEst ? " · " + nEst + " รายการใช้ยอดเดือนก่อนไว้ก่อน" : ""), "เลิกทำ", () => {
     db.items = db.items.filter(i => !ids.includes(i.id));
     save(); render();
   });
 }
 
+/** บิลประจำที่ตั้งยอดไว้ (ค่าเน็ต ค่ามือถือ) ใช้ยอดนั้น
+ *  ที่ตั้งไว้ 0 คือยอดไม่คงที่ (ค่าไฟ ค่าน้ำ) — ตั้งต้นด้วยยอดจริงล่าสุดใน 3 เดือนก่อน แล้วติดป้าย "ยอดเดือนก่อน" ไว้จนกว่าจะแก้ */
 function addFromTemplate(t){
+  const fixed = Number(t.amount) || 0;
+  const last = fixed ? 0 : lastAmountOf(t);
   const it = {
     id:uid(), ym:state.ym, cat:t.cat, name:t.name,
-    amount:Number(t.amount) || 0, due:t.due || null, paid:false, note:"", tpl:t.id, ts:Date.now()
+    amount: fixed || last, due:t.due || null, paid:false, note:"", tpl:t.id, ts:Date.now()
   };
+  if (last) it.est = true;
   db.items.push(it); freshIds.add(it.id);
   return it.id;
 }
+function lastAmountOf(t){
+  for (let k = 1; k <= 3; k++) {
+    const hit = itemsOf(shiftYm(state.ym, -k)).find(i => i.amount > 0 && !(i.est && !i.paid) &&
+      (i.tpl === t.id || (i.cat === t.cat && nameKey(i.name) === nameKey(t.name))));
+    if (hit) return hit.amount;
+  }
+  return 0;
+}
+function nameKey(s){ return String(s || "").trim().toLowerCase().replace(/\s+/g, " "); }
 
 /* ==========================================================
    12. วาดทั้งหน้า
@@ -2639,6 +3145,7 @@ function render(){
     renderList();
     renderDonut();
     renderBars();
+    renderYear();
     renderTemplates();
   }
   fitHeroArt();
@@ -2668,7 +3175,6 @@ window.addEventListener("resize", fitHeroArt);
    ========================================================== */
 let edPaidVal = "0";                     // สถานะในกล่องแก้ไขรายการบิล
 const loanEntries = () => (db.loan.entries || []);
-const r2 = n => Math.round((Number(n) || 0) * 100) / 100;
 const fmtA = n => (Math.round(Math.abs(Number(n) || 0) * 100) % 100 ? fmt(n) : fmt0(n));   // มีสตางค์ค่อยโชว์ทศนิยม
 const isRepay = e => e.type === "back" && !e.adj;
 const clampDay = v => { const n = Math.round(parseAmount(v)); return n >= 1 ? Math.min(31, n) : 0; };
@@ -2681,17 +3187,18 @@ function loanKind(e){
   return { label:"คืนเงิน", icon:"i-check", c:"var(--ok-fill)", cls:"back" };
 }
 
-/** เรียงเก่า→ใหม่ (ยอดยกมาอยู่บนสุดเสมอ) แล้วไล่สะสมยอดคงค้าง ณ ตอนนั้น แบบสมุดบัญชี */
+/** เรียงเก่า→ใหม่ (ยอดยกมาอยู่บนสุดเสมอ) แล้วไล่สะสมยอดคงค้าง ณ ตอนนั้น แบบสมุดบัญชี
+ *  คืนสำเนาที่มี _bal — ไม่เขียนลงรายการจริง ยอดสะสมคำนวณได้เสมอ ไม่ต้องเก็บหรือซิงค์ */
 function loanLedger(){
   const asc = loanEntries().slice().sort((a, b) =>
     (b.open ? 1 : 0) - (a.open ? 1 : 0) ||
     (a.date || "").localeCompare(b.date || "") || (a.ts || 0) - (b.ts || 0));
   let bal = 0;
-  for (const e of asc) {
+  const rows = asc.map(e => {
     bal = r2(bal + (e.type === "out" ? 1 : -1) * (Number(e.amount) || 0));
-    e._bal = bal;
-  }
-  return asc.reverse();   // แสดงใหม่→เก่า
+    return Object.assign({}, e, { _bal: bal });
+  });
+  return rows.reverse();   // แสดงใหม่→เก่า
 }
 
 /** วันครบกำหนดของงวดในเดือน ym — ไม่ได้ตั้งวัน หรือเดือนนั้นสั้นกว่า = วันสุดท้ายของเดือน */
@@ -2716,19 +3223,56 @@ function planStart(day, paidMonth){
   return cur;
 }
 
-/** งวดเดือนนี้ + เดือนที่จะหมด จากยอดค้าง left และงวดละ T */
-function planCalc(left, T, day, paidMonth, start){
-  const cur = ymOf(new Date());
-  const notYet = !!start && cur < start;
-  const ym = notYet ? start : cur;
-  const paidIn = notYet ? 0 : paidMonth;
-  const due = Math.min(T, r2(left + paidIn));           // งวดสุดท้ายอาจน้อยกว่างวดปกติ
-  const remaining = r2(Math.max(0, due - paidIn));
-  let n, finish;
-  if (remaining > 0) { n = 1 + Math.ceil(r2(Math.max(0, left - remaining)) / T - 1e-9); finish = shiftYm(ym, n - 1); }
-  else { n = Math.ceil(left / T - 1e-9); finish = shiftYm(cur, n); }
-  return { ym, notYet, due, paid:Math.min(paidIn, due), remaining, n, finish,
-           date:dueDateOf(ym, day), next:dueDateOf(shiftYm(cur, 1), day) };
+/** วันแรกของรอบงวดเดือน ym = วันถัดจากวันครบของงวดเดือนก่อน (YYYY-MM-DD)
+ *  เป็น function เพราะตัวทำความสะอาดข้อมูลเรียกใช้ตั้งแต่ตอนโหลด */
+function cycleStartIso(ym, day){
+  const d = dueDateOf(shiftYm(ym, -1), day);
+  d.setDate(d.getDate() + 1);
+  return isoOf(d.getFullYear(), d.getMonth() + 1, d.getDate());
+}
+/** ยอดคืนนับเข้าแผนตั้งแต่วันไหน: วันที่ตั้งแผน หรือต้นเดือนของงวดแรก แล้วแต่อันไหนมาก่อน
+ *  (คืนไปแล้วต้นเดือนก่อนตั้งแผนก็นับเป็นงวดเดือนนั้น · ตั้งแผนหลังวันครบ งวดแรกเดือนหน้า แล้วคืนเลย = คืนล่วงหน้า)
+ *  แผนที่ยังไม่มีวันตั้งแผน = ต้นเดือนของงวดแรก เหมือนที่เคยนับ */
+function planLower(from, start){
+  const first = start + "-01";
+  return from && from < first ? from : first;
+}
+function creditedSince(lower){
+  let s = 0;
+  for (const e of loanEntries()) if (isRepay(e) && e.date && e.date >= lower) s += Number(e.amount) || 0;
+  return r2(s);
+}
+
+/** ตารางงวด: งวดละ T เริ่มเดือน start ครบทุกวันที่ day
+ *  ยอดคืนที่นับเข้าแผน (credited) ไล่เติมงวดเก่าสุดที่ยังไม่ครบก่อน — คืนช้าก็เติมงวดที่เลยกำหนด
+ *  คืนล่วงหน้าก็เติมงวดหน้า ไม่ผูกกับเดือนในปฏิทินที่กดบันทึก
+ *  ทั้งแผน = คืนแล้วตั้งแต่เริ่มแผน + ที่ยังค้าง (งวดสุดท้ายอาจน้อยกว่างวดปกติ) */
+function planCalc(left, T, day, credited, start){
+  const now = new Date(), cur = ymOf(now);
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const total = r2(credited + left);
+  const N = Math.max(1, Math.ceil(total / T - 1e-9));               // จำนวนงวดทั้งแผน
+  const amt = k => r2(Math.min(T, total - k * T));
+  const c = Math.min(N - 1, Math.floor(credited / T + 1e-9));       // งวดแรกที่ยังคืนไม่ครบ
+  const paid = r2(Math.max(0, credited - c * T));
+  const due = amt(c), remaining = r2(Math.max(0, due - paid));
+  // งวดที่เลยวันครบไปแล้ว = เดือนก่อนหน้าทั้งหมด + เดือนนี้ถ้าเลยวันครบแล้ว (ครบวันนี้ยังไม่นับว่าเลย)
+  const sp = ymParts(start), cp = ymParts(cur);
+  const passed = (cp.y - sp.y) * 12 + (cp.m - sp.m) + (dueDateOf(cur, day) < today ? 1 : 0);
+  const t = Math.max(0, Math.min(N, passed));
+  const ym = shiftYm(start, c);
+  return {
+    ym, date: dueDateOf(ym, day), due, paid, remaining,
+    first: c === 0,
+    late: c < t,                 // งวด c เลยวันครบแล้ว
+    lateN: Math.max(0, t - c),   // ค้างกี่งวด (นับรวมงวด c)
+    overdue: c < t ? r2(Math.min(total, t * T) - credited) : 0,   // คืนเท่านี้ถึงจะทันทุกงวดที่เลยกำหนด
+    ahead: c > t,                // งวดที่กำลังถึงคืนครบแล้ว
+    upYm: shiftYm(start, Math.min(t, N - 1)),   // งวดที่กำลังถึง (ยังไม่เลยวันครบ)
+    aheadTo: shiftYm(start, Math.max(0, c - 1)),// คืนครบไว้ถึงงวดนี้
+    n: N - c,                    // อีกกี่งวด (รวมงวดที่คืนไปบางส่วน)
+    finish: shiftYm(start, Math.max(N - 1, t + (N - c) - 1))   // ค้างงวดอยู่ = เลื่อนออกไปตามจริง
+  };
 }
 
 function loanStatus(){
@@ -2750,7 +3294,10 @@ function loanStatus(){
   };
   st.total = r2(st.repaid + st.left);
   st.pct = st.total > 0 ? Math.min(100, Math.max(0, st.repaid / st.total * 100)) : (st.has ? 100 : 0);
-  if (st.T > 0 && st.left > 0) st.inst = planCalc(st.left, st.T, st.D, st.paidMonth, db.loan.startYm || "");
+  // แผนเก่ามากที่ไม่มีเดือนเริ่ม: ถือว่างวดแรกคือเดือนนี้เสมอ (นับเฉพาะที่คืนในเดือนนี้ เหมือนเดิม)
+  st.start = YM_RE.test(db.loan.startYm || "") ? db.loan.startYm : cur;
+  st.credited = creditedSince(planLower(db.loan.planFrom, st.start));
+  if (st.T > 0 && st.left > 0) st.inst = planCalc(st.left, st.T, st.D, st.credited, st.start);
   return st;
 }
 
@@ -2787,7 +3334,7 @@ function renderLoan(){
     mk("", left < 0 ? "คืนเกินไป " + fmtA(-left) + " บาท แก้ได้ที่ประวัติรายการ" : "ถ้ายืมอีก กด “ยืมเพิ่ม” ได้เลย");
   } else if (st.inst) {
     const i = st.inst;
-    mk("", i.n === 1 ? "อีกงวดเดียวหมด · ครบ <b>" + dShort(i.remaining > 0 ? i.date : i.next) + "</b>"
+    mk("", i.n === 1 ? "อีกงวดเดียวหมด · ครบ <b>" + dShort(i.date) + "</b>"
                      : "หมดราว <b>" + ymLabel(i.finish) + "</b> · อีก " + i.n + " งวด");
   } else {
     mk("", "ตั้งงวดคืนต่อเดือน แล้วแอปจะบอกว่าหมดเมื่อไหร่");
@@ -2826,19 +3373,27 @@ function renderLoanInst(st){
   } else {
     const i = st.inst;
     pct = i.due > 0 ? Math.min(100, i.paid / i.due * 100) : 0;
-    if (i.remaining <= 0) {
-      s = "done"; icon = "i-check-circle"; label = "งวด " + ymShort(st.cur); big = "คืนครบแล้ว"; pct = 100;
-      note = "งวดถัดไป <b>" + dShort(i.next) + "</b> · " + fmtA(Math.min(st.T, st.left)) + " บาท";
+    if (i.ahead) {
+      // งวดที่กำลังถึงคืนครบแล้ว — อาจคืนล่วงหน้าไว้หลายงวด บอกว่าถึงงวดไหน แล้วงวดที่ต้องคืนต่อไปคือเมื่อไหร่
+      s = "done"; icon = "i-check-circle"; label = "งวด " + ymShort(i.upYm); big = "คืนครบแล้ว"; pct = 100;
+      note = (i.aheadTo !== i.upYm ? "คืนล่วงหน้าไว้ถึงงวด <b>" + ymShort(i.aheadTo) + "</b> · " : "") +
+             "งวดถัดไป <b>" + dShort(i.date) + "</b> · " + fmtA(i.remaining) + " บาท";
     } else {
       const days = daysFromToday(i.date);
-      s = days < 0 ? "late" : days <= 3 ? "soon" : "wait";
+      // ค้างหลายงวด: ยอดใหญ่ = ต้องคืนเท่าไหร่ถึงจะทันทุกงวดที่เลยกำหนด
+      const owe = i.late ? i.overdue : i.remaining;
+      s = i.late ? "late" : days <= 3 ? "soon" : "wait";
       icon = "i-calendar";
-      label = (i.notYet ? "งวดแรก " : "งวด ") + ymShort(i.ym) + (i.paid > 0 ? " เหลืออีก" : "");
-      big = fmt(i.remaining);
-      tag = '<span class="duetag ' + (days < 0 ? "late" : days <= 3 ? "soon" : "") + '">' +
+      label = i.lateN > 1 ? "ค้าง " + i.lateN + " งวด"
+            : (i.first ? "งวดแรก " : "งวด ") + ymShort(i.ym) + (i.paid > 0 ? " เหลืออีก" : "");
+      big = fmt(owe);
+      if (i.lateN > 1) pct = Math.min(100, i.paid / (owe + i.paid) * 100);
+      tag = '<span class="duetag ' + (i.late ? "late" : days <= 3 ? "soon" : "") + '">' +
             (days < 0 ? "เลยกำหนด " + (-days) + " วัน" : days === 0 ? "ครบวันนี้" : "อีก " + days + " วัน") + "</span> ";
-      note = tag + "ครบ <b>" + dShort(i.date) + "</b>" + (st.D ? "" : " (สิ้นเดือน)") +
-             (i.paid > 0 ? " · คืนแล้ว " + fmtA(i.paid) + " จาก " + fmtA(i.due) : "");
+      note = tag + (i.lateN > 1
+               ? "งวด " + ymShort(i.ym) + "–" + ymShort(shiftYm(i.ym, i.lateN - 1)) + " ยังคืนไม่ครบ"
+               : "ครบ <b>" + dShort(i.date) + "</b>" + (st.D ? "" : " (สิ้นเดือน)") +
+                 (i.paid > 0 ? " · คืนแล้ว " + fmtA(i.paid) + " จาก " + fmtA(i.due) : ""));
     }
   }
   const prev = box.dataset.pct || "0";
@@ -2946,7 +3501,7 @@ function renderLoanBars(st){
   for (const m of months) {
     // ถึงงวด = คืนครบงวดปกติ หรือเป็นเดือนที่คืนจนครบงวด/ปิดยอด (งวดสุดท้ายอาจน้อยกว่างวดปกติ)
     const hit = st.T > 0 && m.total > 0 && (m.total >= st.T - 0.005 ||
-      (m.ym === st.cur && st.inst && st.inst.remaining <= 0) || (st.left <= 0 && m.ym === lastYm));
+      (m.ym === st.cur && st.inst && st.inst.ahead) || (st.left <= 0 && m.ym === lastYm));
     if (hit) hits++;
     const p = ymParts(m.ym);
     const col = document.createElement("div");
@@ -3076,10 +3631,34 @@ function wireSeg(boxId, get, set){
       x.setAttribute("aria-pressed", x.dataset.t === get() ? "true" : "false");
   });
 }
-wireSeg("edPaidSeg", () => edPaidVal,      t => { edPaidVal = t; });
+wireSeg("edPaidSeg", () => edPaidVal,      t => {
+  edPaidVal = t;
+  // เปลี่ยนเป็นจ่ายแล้ว: ถามวันที่จ่าย ตั้งเป็นวันนี้ไว้ก่อน
+  el("edPaidOnF").hidden = t !== "1";
+  if (t === "1" && !el("edPaidOn").value) { el("edPaidOn").value = isoToday(); dateFields.edPaidOn(); }
+});
 
 /* ---------- ช่องกรอก: ข้อความผิดอยู่ใต้ช่องนั้นเลย ---------- */
-function showErr(inp, msg){ el(inp).setAttribute("aria-invalid", "true"); el(msg).hidden = false; el(inp).focus(); }
+function showErr(inp, msg, text){
+  if (text) el(msg).textContent = text;
+  el(inp).setAttribute("aria-invalid", "true"); el(msg).hidden = false; el(inp).focus();
+}
+/** ตรวจช่องเงินก่อนบันทึก — ไม่ผ่านก็บอกใต้ช่องแล้วคืน false (ว่าง = 0 ผ่าน) */
+function moneyOk(inp, msg){
+  const r = readMoney(el(inp).value);
+  if (!r.err) return true;
+  showErr(inp, msg, MONEY_ERR[r.err]);
+  return false;
+}
+/** ตัวตรวจของกล่อง: ผูกกับ submit ก่อน onDialogResult — ไม่ผ่านแล้วกล่องไม่ปิด ผลไม่ถูกนับ */
+function guardDialog(dlg, check){
+  dlg.addEventListener("submit", e => {
+    if ((e.submitter && e.submitter.value) !== (dlg === askDlg ? "ok" : "save")) return;
+    if (check()) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+  });
+}
 function clearErr(inp, msg){ el(inp).removeAttribute("aria-invalid"); el(msg).hidden = true; }
 /** Enter ในช่องกรอก = กดปุ่มบันทึก (ถ้าปล่อยให้เบราว์เซอร์เลือก มันจะกดปุ่มปิดที่อยู่บนสุดของฟอร์ม) */
 function enterSubmits(dlg, okId){
@@ -3116,8 +3695,9 @@ function paintLnDlg(){
   q.innerHTML = "";
   if (!it && !out && st.left > 0) {
     const opts = [];
-    const inst = st.inst && !st.inst.notYet && st.inst.remaining > 0 ? st.inst.remaining : st.T;
-    if (inst > 0 && inst < st.left) opts.push(["ตามงวด", inst]);
+    // ตามงวด = ยอดของงวดที่ต้องคืนต่อไป (ค้างหลายงวด = รวมทุกงวดที่เลยกำหนด)
+    const i = st.inst, inst = i ? (i.late ? i.overdue : i.remaining) : st.T;
+    if (inst > 0 && inst < st.left) opts.push([i && i.lateN > 1 ? "ค้าง " + i.lateN + " งวด" : "ตามงวด", inst]);
     opts.push(["ปิดยอด", st.left]);
     for (const [t, v] of opts) {
       const b = document.createElement("button");
@@ -3135,7 +3715,7 @@ function paintLnDlg(){
 /** บอกล่วงหน้าว่าบันทึกแล้วยอดค้างจะเหลือเท่าไหร่ */
 function paintLnAfter(){
   const box = el("lnAfter");
-  const amt = r2(parseAmount(el("lnEdAmt").value));
+  const amt = readMoney(el("lnEdAmt").value).v || 0;
   if (!(amt > 0)) { box.hidden = true; return; }
   const it = lnEditing();
   const sign = t => t === "out" ? 1 : -1;
@@ -3207,12 +3787,11 @@ el("lnQuick").addEventListener("click", e => {
 });
 enterSubmits(lnDlg, "lnEdOk");
 // ตรวจก่อน onDialogResult — ยอดว่างจะไม่ปิดกล่อง และบอกตรงใต้ช่องเลย
-lnDlg.addEventListener("submit", e => {
-  if ((e.submitter && e.submitter.value) !== "save") return;
-  if (parseAmount(el("lnEdAmt").value) > 0) return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  showErr("lnEdAmt", "lnEdErr");
+guardDialog(lnDlg, () => {
+  const r = readMoney(el("lnEdAmt").value);
+  if (r.err) { showErr("lnEdAmt", "lnEdErr", MONEY_ERR[r.err]); return false; }
+  if (!(r.v > 0)) { showErr("lnEdAmt", "lnEdErr", "ใส่จำนวนเงินก่อน"); return false; }
+  return true;
 });
 
 onDialogResult(lnDlg, v => {
@@ -3220,7 +3799,7 @@ onDialogResult(lnDlg, v => {
   lnEditId = null;
   if (v === "delete") { if (it) delLoanEntry(it); return; }
   if (v !== "save") return;
-  const amt = r2(parseAmount(el("lnEdAmt").value));
+  const amt = readMoney(el("lnEdAmt").value).v || 0;
   if (!(amt > 0)) return;
   const date = el("lnEdDate").value || isoToday();
   const memo = el("lnEdMemo").value.trim().slice(0, 80);
@@ -3263,6 +3842,7 @@ function openPlan(){
   el("lnPlInst").value = st.T ? fmt(st.T) : "";
   el("lnPlDay").value  = st.D || "";
   clearErr("lnPlBal", "lnPlErr");
+  clearErr("lnPlInst", "lnPlInstErr");
   paintPlanPrev();
   lnPlanDlg.showModal();
   if (setup || !isPhone()) setTimeout(() => { el("lnPlBal").focus(); el("lnPlBal").select(); }, 30);
@@ -3271,8 +3851,8 @@ function openPlan(){
 function paintPlanPrev(){
   const st = loanStatus();
   const raw = el("lnPlBal").value.trim();
-  const bal = raw === "" ? (st.has ? st.left : 0) : r2(parseAmount(raw));
-  const T = r2(parseAmount(el("lnPlInst").value));
+  const bal = raw === "" ? (st.has ? st.left : 0) : (readMoney(raw).v || 0);
+  const T = readMoney(el("lnPlInst").value).v || 0;
   const D = clampDay(el("lnPlDay").value);
   const box = el("lnPlPrev");
   box.className = "ln-after";
@@ -3281,51 +3861,55 @@ function paintPlanPrev(){
     box.innerHTML = ico("i-target", "ic-sm") + "<span>ใส่ยอดที่จะคืนต่อเดือน แล้วจะเห็นว่าหมดเมื่อไหร่</span>";
     return;
   }
+  // แผนเดิม = ใช้ตารางงวดเดิม · เปลี่ยนงวด/วัน = เริ่มตารางใหม่วันนี้ (แบบเดียวกับตอนกดบันทึก)
   const same = st.has && T === st.T && D === st.D;
-  const paid = st.has ? st.paidMonth : 0;
-  const p = planCalc(bal, T, D, paid, same ? (db.loan.startYm || "") : planStart(D, paid));
+  const start = same ? st.start : planStart(D, st.has ? st.paidMonth : 0);
+  const credited = same ? st.credited : st.has ? creditedSince(planLower(isoToday(), start)) : 0;
+  const p = planCalc(bal, T, D, credited, start);
   box.className = "ln-after ok";
-  const when = p.remaining > 0 ? p.date : p.next;      // เดือนนี้ครบแล้ว งวดต่อไปคือเดือนหน้า
   box.innerHTML = ico("i-flag", "ic-sm") + "<span>" + (p.n <= 1
-    ? "คืนงวดเดียวก็หมด ภายใน <b>" + dShort(when) + " " + beYear(when.getFullYear()) + "</b>"
+    ? "คืนงวดเดียวก็หมด ภายใน <b>" + dShort(p.date) + " " + beYear(p.date.getFullYear()) + "</b>"
     : "คืนเดือนละ <b>" + fmtA(T) + "</b> อีก <b>" + p.n + " งวด</b> หมดราว <b>" + ymLabel(p.finish) + "</b>" +
-      (p.remaining > 0 ? " · งวด" + (p.notYet ? "แรก" : "นี้") + "ครบ " + dShort(p.date) : "")) + "</span>";
+      (p.late ? " · ค้างอยู่ " + p.lateN + " งวด"
+              : " · งวด" + (p.first ? "แรก" : p.ahead ? "ถัดไป" : "นี้") + "ครบ " + dShort(p.date))) + "</span>";
 }
 
 ["lnPlBal", "lnPlInst", "lnPlDay"].forEach(id => el(id).addEventListener("input", () => {
   if (id === "lnPlBal") clearErr("lnPlBal", "lnPlErr");
+  if (id === "lnPlInst") clearErr("lnPlInst", "lnPlInstErr");
   paintPlanPrev();
 }));
 enterSubmits(lnPlanDlg, "lnPlOk");
-lnPlanDlg.addEventListener("submit", e => {
-  if ((e.submitter && e.submitter.value) !== "save") return;
-  if (loanEntries().length || parseAmount(el("lnPlBal").value) > 0) return;
-  e.preventDefault();
-  e.stopImmediatePropagation();
-  showErr("lnPlBal", "lnPlErr");
+guardDialog(lnPlanDlg, () => {
+  const b = readMoney(el("lnPlBal").value);
+  if (b.err) { showErr("lnPlBal", "lnPlErr", MONEY_ERR[b.err]); return false; }
+  if (!loanEntries().length && !(b.v > 0)) { showErr("lnPlBal", "lnPlErr", "ใส่ยอดที่ค้างอยู่ก่อน"); return false; }
+  return moneyOk("lnPlInst", "lnPlInstErr");
 });
 
 onDialogResult(lnPlanDlg, v => {
   if (v !== "save") return;
   const before = JSON.stringify(db.loan);
   const st = loanStatus();
-  const T = Math.max(0, r2(parseAmount(el("lnPlInst").value)));
+  const T = readMoney(el("lnPlInst").value).v || 0;
   const D = clampDay(el("lnPlDay").value);
   db.loan.account = el("lnPlAcc").value.trim().slice(0, 40);
   db.loan.target  = T;
   db.loan.dueDay  = D;
   let msg = "";
   if (!st.has) {
-    const bal = r2(parseAmount(el("lnPlBal").value));
+    const bal = readMoney(el("lnPlBal").value).v || 0;
     if (!(bal > 0)) { db.loan = Object.assign(blankLoan(), JSON.parse(before)); return; }
     db.loan.entries.push({ id:uid(), date:isoToday(), type:"out", amount:bal, memo:"", open:true, ts:Date.now() });
-    db.loan.startYm = planStart(D, 0);
+    db.loan.startYm  = planStart(D, 0);
+    db.loan.planFrom = isoToday();
     msg = "เริ่มติดตามยอดค้าง " + fmtA(bal) + " บาทแล้ว";
   } else {
-    if (T !== st.T || D !== st.D) db.loan.startYm = planStart(D, st.paidMonth);
+    // เปลี่ยนงวดหรือวันครบ = เริ่มตารางงวดใหม่จากวันนี้ (ยอดคืนก่อนหน้านี้ลดยอดค้างไปแล้ว ไม่นับซ้ำ)
+    if (T !== st.T || D !== st.D) { db.loan.startYm = planStart(D, st.paidMonth); db.loan.planFrom = isoToday(); }
     const raw = el("lnPlBal").value.trim();
     if (raw !== "" && raw !== lnPlBalInit) {
-      const nb = Math.max(0, r2(parseAmount(raw)));
+      const nb = readMoney(raw).v || 0;
       const diff = r2(nb - st.left);
       if (Math.abs(diff) >= 0.01) {
         const ents = db.loan.entries;
@@ -3694,14 +4278,15 @@ el("qaForm").addEventListener("submit", e => {
   e.preventDefault();
   const c    = el("qaCat").value;
   const name = el("qaName").value.trim() || cat(c).name;
-  const amt  = parseAmount(el("qaAmt").value);
+  if (!moneyOk("qaAmt", "qaAmtErr")) return;
+  const amt  = readMoney(el("qaAmt").value).v;
   const due  = Math.min(31, Math.max(0, parseInt(el("qaDue").value, 10) || 0));
 
   if (!amt && !el("qaName").value.trim()) {
-    toast("ใส่ชื่อรายการหรือจำนวนเงินอย่างน้อยหนึ่งอย่าง");
-    el("qaAmt").focus();
+    showErr("qaAmt", "qaAmtErr", "ใส่ชื่อรายการหรือจำนวนเงินอย่างน้อยหนึ่งอย่าง");
     return;
   }
+  clearErr("qaAmt", "qaAmtErr");
   const it = { id:uid(), ym:state.ym, cat:c, name, amount:amt, due:due || null, paid:false, note:"", ts:Date.now() };
   db.items.push(it); freshIds.add(it.id);
   save(); render();
@@ -3752,6 +4337,11 @@ function closeAdd(){
   el("fab").setAttribute("aria-expanded", "false");
   if (isPhone()) el("fab").focus({ preventScroll:true });
 }
+el("qaAmt").addEventListener("input", () => clearErr("qaAmt", "qaAmtErr"));
+// ใส่ชื่อแล้ว คำเตือน "ใส่ชื่อหรือจำนวนเงิน" หมดความหมาย (แต่คำเตือนว่ายอดผิดรูปแบบยังต้องอยู่)
+el("qaName").addEventListener("input", () => {
+  if (el("qaName").value.trim() && !readMoney(el("qaAmt").value).err) clearErr("qaAmt", "qaAmtErr");
+});
 el("qaClose").onclick = closeAdd;
 el("scrim").onclick   = closeAdd;
 el("qaForm").addEventListener("keydown", e => {
@@ -3782,6 +4372,7 @@ el("list").addEventListener("click", e => {
   switch (act.dataset.act) {
     case "paid": {
       it.paid = !it.paid;
+      if (it.paid) it.paidOn = isoToday(); else delete it.paidOn;
       save();
       paintPaid(row, it);
       renderAround();
@@ -3837,11 +4428,19 @@ function openEdit(it){
   edPaidVal = it.paid ? "1" : "0";
   for (const x of $$("[data-t]", el("edPaidSeg")))
     x.setAttribute("aria-pressed", x.dataset.t === edPaidVal ? "true" : "false");
+  el("edPaidOn").value = it.paidOn || "";            // รายการเก่าที่จ่ายก่อนมีช่องนี้ไม่มีวันที่ ไม่เดาให้
+  el("edPaidOnF").hidden = !it.paid;
+  dateFields.edPaidOn();
   el("edNote").value = it.note || "";
   el("edTpl").hidden = !!db.templates.find(t => t.name === it.name && t.cat === it.cat);
+  clearErr("edAmt", "edAmtErr");
   editDlg.showModal();
   setTimeout(() => el("edName").focus(), 30);
 }
+// Enter ในช่องกรอก = บันทึก (ไม่งั้นเบราว์เซอร์กดปุ่มปิดที่อยู่บนสุดของฟอร์ม แล้วสิ่งที่แก้หายหมด)
+enterSubmits(editDlg, "edOk");
+el("edAmt").addEventListener("input", () => clearErr("edAmt", "edAmtErr"));
+guardDialog(editDlg, () => moneyOk("edAmt", "edAmtErr"));
 onDialogResult(editDlg, v => {
   closeAllCsel();
   const it = db.items.find(i => i.id === state.editingId);
@@ -3849,14 +4448,25 @@ onDialogResult(editDlg, v => {
   if (!it) return;
 
   if (v === "save") {
+    const before = JSON.stringify(it);
     it.name   = el("edName").value.trim() || cat(el("edCat").value).name;
     it.cat    = el("edCat").value;
-    it.amount = parseAmount(el("edAmt").value);
+    it.amount = readMoney(el("edAmt").value).v || 0;
     it.due    = Math.min(31, Math.max(0, parseInt(el("edDue").value, 10) || 0)) || null;
     it.paid   = edPaidVal === "1";
+    const on  = el("edPaidOn").value;
+    if (it.paid && ISO_RE.test(on)) it.paidOn = on; else delete it.paidOn;
     it.note   = el("edNote").value.trim();
+    delete it.est;                                   // เปิดดูแล้วกดบันทึก = ยอดนี้คือยอดที่ตั้งใจ
+    if (JSON.stringify(it) === before) { toast("ไม่มีอะไรเปลี่ยน"); return; }
     save(); render();
-    toast("บันทึกแล้ว");
+    // แก้พลาดก็ย้อนได้ เหมือนลบรายการและสมุดคืนเงิน
+    toast("บันทึกแล้ว", "เลิกทำ", () => {
+      const k = db.items.findIndex(x => x.id === it.id);
+      if (k < 0) return;
+      db.items[k] = JSON.parse(before);
+      save(); render();
+    });
   } else if (v === "tpl") {
     makeTemplateFrom(it);
   } else if (v === "delete") {
@@ -3882,9 +4492,19 @@ function openTpl(t){
   el("tpAmt").value  = t && t.amount ? fmt(t.amount) : "";
   el("tpDue").value  = t && t.due ? t.due : "";
   el("tpDelete").style.display = t ? "" : "none";
+  clearErr("tpName", "tpNameErr");
+  clearErr("tpAmt", "tpAmtErr");
   tplDlg.showModal();
   setTimeout(() => el("tpName").focus(), 30);
 }
+enterSubmits(tplDlg, "tpOk");
+el("tpName").addEventListener("input", () => clearErr("tpName", "tpNameErr"));
+el("tpAmt").addEventListener("input", () => clearErr("tpAmt", "tpAmtErr"));
+// ชื่อว่างหรือยอดผิด: บอกใต้ช่อง กล่องไม่ปิด (เดิมปิดกล่องแล้วค่อยเตือน สิ่งที่พิมพ์ไว้หายหมด)
+guardDialog(tplDlg, () => {
+  if (!el("tpName").value.trim()) { showErr("tpName", "tpNameErr"); return false; }
+  return moneyOk("tpAmt", "tpAmtErr");
+});
 el("addTpl").onclick  = () => openTpl(null);
 el("pullTpl").onclick = pullTemplates;
 
@@ -3896,8 +4516,9 @@ el("tplList").addEventListener("click", e => {
   const act = e.target.closest("[data-tact]");
   if (act && act.dataset.tact === "add") {
     const id = addFromTemplate(t);
+    const nw = db.items.find(i => i.id === id);
     save(); render();
-    toast("เพิ่ม " + t.name + " เข้าเดือนนี้", "เลิกทำ", () => {
+    toast("เพิ่ม " + t.name + " เข้าเดือนนี้" + (nw && nw.est ? " · ใช้ยอดเดือนก่อน " + fmt0(nw.amount) + " บาทไว้ก่อน" : ""), "เลิกทำ", () => {
       db.items = db.items.filter(i => i.id !== id); save(); render();
     });
     return;
@@ -3922,11 +4543,11 @@ onDialogResult(tplDlg, v => {
   if (v !== "save") return;
 
   const name = el("tpName").value.trim();
-  if (!name) { toast("ใส่ชื่อบิลก่อน"); return; }
+  if (!name) return;                     // ตัวตรวจด้านบนกันไว้แล้ว เผื่อปิดจากทางอื่น
   const data = {
     cat: el("tpCat").value,
     name,
-    amount: parseAmount(el("tpAmt").value),
+    amount: readMoney(el("tpAmt").value).v || 0,
     due: Math.min(31, Math.max(0, parseInt(el("tpDue").value, 10) || 0)) || null
   };
   if (id) Object.assign(db.templates.find(x => x.id === id), data);
@@ -3945,21 +4566,19 @@ function paintThemeSeg(){
   const cur = db.settings.theme === "light" || db.settings.theme === "dark" ? db.settings.theme : "";
   for (const x of $$("[data-t]", el("sTheme"))) x.setAttribute("aria-pressed", x.dataset.t === cur ? "true" : "false");
 }
-function renderSettings(){
-  const b = Number(db.settings.budget) || 0;
-  el("sBudgetV").textContent = b ? fmt0(b) + " บาท" : "ยังไม่ได้ตั้ง";
-
-  const prev = shiftYm(state.ym, -1), n = itemsOf(prev).length;
-  el("sCopyD").textContent = n
-    ? "ยก " + n + " รายการจาก " + ymLabel(prev) + " มาไว้ที่ " + ymLabel(state.ym) + " (ยังไม่ติ๊กจ่าย)"
-    : ymLabel(prev) + " ไม่มีรายการให้คัดลอก";
-  el("mCopyPrev").disabled = !n;
-
-  paintThemeSeg();
-
-  // ข้อมูลอยู่ที่ไหน — คนส่วนใหญ่ไม่รู้ว่าข้อมูลอยู่ในเบราว์เซอร์ ต้องบอกตรงๆ
+// ข้อมูลอยู่ที่ไหน — คนส่วนใหญ่ไม่รู้ว่าข้อมูลอยู่ในเบราว์เซอร์ ต้องบอกตรงๆ รวมถึงตอนที่ยังส่งไม่ถึงเครื่องอื่น
+function paintWhere(){
   const where = el("sWhere");
-  const [cls, icon, title, desc] = store
+  const behind = store && (sync.hard || sync.retryTimer || (sync.slow && !(sync.months && sync.meta)));
+  const [cls, icon, title, desc] = store && sync.dead
+    ? ["warn", "i-alert", "ซิงค์หยุดแล้ว",
+       "ข้อมูลที่แก้หลังจากนี้อยู่ในเครื่องนี้เท่านั้น ปิดแล้วเปิดลิงก์ใหม่เพื่อซิงค์อีกครั้ง"]
+    : behind
+    ? ["warn", "i-alert", "ยังส่งไม่ถึงเครื่องอื่น", sync.hard
+       ? (sync.hard === "quota_exceeded" ? "ที่เก็บข้อมูลของลิงก์นี้เต็ม " : "") +
+         "ของที่แก้บันทึกไว้ในเครื่องนี้แล้ว แอปจะลองส่งอีกครั้งตอนแก้ครั้งถัดไป ระหว่างนี้อย่าล้างข้อมูลเบราว์เซอร์"
+       : "ของที่แก้บันทึกไว้ในเครื่องนี้แล้ว แอปจะส่งให้เองเมื่อต่อได้ ระหว่างนี้อย่าล้างข้อมูลเบราว์เซอร์"]
+    : store
     ? ["ok", "i-check-circle", "ซิงค์ข้ามเครื่องอยู่",
        "ข้อมูลเก็บไว้กับลิงก์นี้ เปิดจากเครื่องไหนก็เห็นเหมือนกัน (ยกเว้นธีม ที่แต่ละเครื่องเลือกเอง)"]
     : storageOK
@@ -3967,14 +4586,46 @@ function renderSettings(){
        "ข้อมูลอยู่ในเบราว์เซอร์นี้เท่านั้น ไม่ได้ส่งไปที่ไหน ล้างประวัติเบราว์เซอร์แล้วจะหาย — สำรองเป็นไฟล์ไว้เป็นระยะ"]
     : ["warn", "i-alert", "เบราว์เซอร์นี้บันทึกถาวรไม่ได้",
        "ข้อมูลจะหายเมื่อปิดหน้า สำรองเป็นไฟล์ก่อนปิดทุกครั้ง"];
-  where.className = "set-row set-where" + (cls ? " " + cls : "");
+  const next = "set-row set-where" + (cls ? " " + cls : "");
+  if (where.className === next && el("sWhereT").textContent === title && el("sWhereD").textContent === desc) return;   // ไม่เปลี่ยน ไม่ต้องวาดใหม่
+  where.className = next;
   el("sWhereI").innerHTML = ico(icon, "ic-sm");
   el("sWhereT").textContent = title;
   el("sWhereD").textContent = desc;
+}
+function renderSettings(){
+  const b = Number(db.settings.budget) || 0;
+  el("sBudgetV").textContent = b ? fmt0(b) + " บาท" : "ยังไม่ได้ตั้ง";
+
+  const prev = shiftYm(state.ym, -1), cp = copyPlan(), n = cp.add.length;
+  el("sCopyD").textContent = n
+    ? "ยก " + n + " รายการจาก " + ymLabel(prev) + " มาไว้ที่ " + ymLabel(state.ym) + " (ยังไม่ติ๊กจ่าย)" +
+      (cp.skip ? " · ข้าม " + cp.skip + " รายการที่มีอยู่แล้ว" : "")
+    : cp.skip ? "ทุกรายการจาก " + ymLabel(prev) + " อยู่ใน " + ymLabel(state.ym) + " แล้ว"
+    : ymLabel(prev) + " ไม่มีรายการให้คัดลอก";
+  el("mCopyPrev").disabled = !n;
+
+  paintThemeSeg();
+
+  paintWhere();
 
   const ln = loanEntries().length;
-  el("sBackupD").textContent = "ค่าใช้จ่าย " + db.items.length + " รายการ · บิลประจำ " + db.templates.length +
-    (ln ? " · สมุดคืนเงิน " + ln + " รายการ" : "") + " — นำกลับเข้ามาได้ทุกเมื่อ";
+  // บอกว่าสำรองครั้งล่าสุดเมื่อไหร่ — ข้อมูลอยู่แค่ในเบราว์เซอร์ (iPhone อาจล้างเองถ้าไม่ได้เปิดนาน) ไฟล์สำรองคือของจริงชิ้นเดียว
+  const bak = lastBackup(), has = db.items.length || db.templates.length || ln;
+  const bakDays = bak ? daysSince(bak) : null;
+  const bd = el("sBackupD");
+  bd.textContent = (bak ? "สำรองล่าสุด" + whenText(bak) : "ยังไม่เคยสำรองจากเครื่องนี้") +
+    " · ค่าใช้จ่าย " + db.items.length + " รายการ · บิลประจำ " + db.templates.length +
+    (ln ? " · สมุดคืนเงิน " + ln + " รายการ" : "");
+  bd.classList.toggle("warn", !!has && (!bak || bakDays > 30));
+
+  const u = readUndo();
+  el("mUndo").hidden = !u;
+  if (u) {
+    el("sUndoT").textContent = u.why === "undo" ? "เลิกทำการย้อนกลับ" : "ย้อนกลับไปข้อมูลชุด" + UNDO_WHY[u.why];
+    el("sUndoD").textContent = "เก็บไว้" + whenText(u.at) + " · ค่าใช้จ่าย " +
+      (Array.isArray(u.db.items) ? u.db.items.length : 0) + " รายการ · หายไปเองหลัง " + UNDO_DAYS + " วัน";
+  }
   el("mLoanCsv").hidden = !ln;
   el("sPrintD").textContent = "ใบสรุปบิลของ" + ymFull(state.ym);
 }
@@ -3997,10 +4648,11 @@ async function download(filename, text, mime, okMsg){
     try {
       await dl.save({ filename, data:text });
       toast(okMsg);
+      return true;
     } catch (err) {
       if (!err || err.code !== "declined") toast("บันทึกไฟล์ไม่สำเร็จ ลองใหม่อีกครั้ง");
+      return false;
     }
-    return;
   }
   // เปิดเป็นไฟล์ในเครื่อง: โหลดตรงได้เลย
   const blob = new Blob([text], { type:(mime || "text/plain") + ";charset=utf-8" });
@@ -4010,24 +4662,89 @@ async function download(filename, text, mime, okMsg){
   document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(url), 1500);
   toast(okMsg);
+  return true;
+}
+/** ชื่อไฟล์มีวันและเวลา — สำรองหลายครั้งในเดือนเดียวกันไฟล์จะได้ไม่ทับกันหรือกลายเป็น (1) (2) */
+function fileStamp(){
+  const d = new Date(), p = n => String(n).padStart(2, "0");
+  return isoToday() + "-" + p(d.getHours()) + p(d.getMinutes());
 }
 
-el("mExportJson").onclick = () => {
-  download("billban-backup-" + ymOf(new Date()) + ".json",
-           JSON.stringify(db, null, 2), "application/json", "สำรองข้อมูลเรียบร้อย");
+/* ---------- สำรองล่าสุด + สำเนาก่อนกู้คืน/ล้าง (เก็บแยกในเครื่องนี้ ไม่ซิงค์ ไม่ติดไปในไฟล์สำรอง) ---------- */
+const BAK_KEY = KEY + ".bak", UNDO_KEY = KEY + ".undo", UNDO_DAYS = 14;
+const UNDO_WHY = { restore:"ก่อนกู้คืนจากไฟล์", reset:"ก่อนล้างข้อมูล", undo:"ก่อนย้อนกลับ" };
+let undoMem = null;                    // ที่เก็บในเครื่องใช้ไม่ได้ก็ยังย้อนได้จนกว่าจะปิดหน้า
+function lastBackup(){
+  if (!storageOK) return "";
+  try { const v = localStorage.getItem(BAK_KEY) || ""; return ISO_RE.test(v.slice(0, 10)) ? v : ""; } catch (e) { return ""; }
+}
+function keepUndo(why){
+  undoMem = { at: Date.now(), why, db: JSON.parse(JSON.stringify(db)) };
+  if (storageOK) try { localStorage.setItem(UNDO_KEY, JSON.stringify(undoMem)); } catch (e) {}
+}
+function readUndo(){
+  let s = undoMem;
+  if (!s && storageOK) try { s = JSON.parse(localStorage.getItem(UNDO_KEY) || "null"); } catch (e) { s = null; }
+  if (!isObj(s) || !isObj(s.db) || !UNDO_WHY[s.why] || !(Date.now() - Number(s.at) < UNDO_DAYS * 864e5)) return null;
+  return s;
+}
+/** กลับไปเป็นข้อมูลชุดที่เก็บไว้ — ข้อมูลตอนนี้ก็เก็บไว้แทนที่ ย้อนผิดก็ย้อนกลับมาได้อีก */
+function useUndo(){
+  const s = readUndo();
+  if (!s) { toast("ไม่มีข้อมูลชุดก่อนหน้าให้ย้อนกลับแล้ว"); return; }
+  migratedPlan = false;
+  const c = cleanDb(s.db);
+  keepUndo("undo");
+  c.db.settings.theme = db.settings.theme;          // ธีมกับหน้าที่เปิดเป็นของเครื่องนี้ ไม่ย้อนตาม
+  c.db.settings.page  = db.settings.page;
+  db = c.db;
+  save(); applyTheme(resolvedTheme(), false); render();
+  toast("ย้อนข้อมูลกลับเป็นชุด" + UNDO_WHY[s.why] + "แล้ว", "เลิกทำ", useUndo, 10000);
+}
+
+el("mExportJson").onclick = async () => {
+  if (await download("billban-backup-" + fileStamp() + ".json",
+                     JSON.stringify(db, null, 2), "application/json", "สำรองข้อมูลเรียบร้อย")) {
+    if (storageOK) try { localStorage.setItem(BAK_KEY, new Date().toISOString()); } catch (e) {}
+    if (state.page === "settings") renderSettings();
+  }
 };
+el("mUndo").onclick = async () => {
+  const s = readUndo();
+  if (!s) { renderSettings(); return; }
+  const n = Array.isArray(s.db.items) ? s.db.items.length : 0;
+  const ok = await ask({
+    title:"ย้อนข้อมูลกลับ?",
+    msg:"กลับไปใช้ข้อมูลชุด" + UNDO_WHY[s.why] + " (" + whenText(s.at) + " · ค่าใช้จ่าย " + n + " รายการ) " +
+        "ข้อมูลตอนนี้จะถูกเก็บไว้แทน เปลี่ยนใจก็ย้อนกลับมาได้อีก",
+    okText:"ย้อนกลับ"
+  });
+  if (ok) useUndo();
+};
+/** นับเป็นวันตามปฏิทิน (เมื่อคืนห้าทุ่ม = เมื่อวาน ไม่ใช่ 0 วัน) */
+function daysSince(t){
+  const d = new Date(t);
+  return daysAgo(isoOf(d.getFullYear(), d.getMonth() + 1, d.getDate()));
+}
+/** "วันนี้ 14:30" / "เมื่อวาน" / "เมื่อ 3 วันก่อน" */
+function whenText(t){
+  const d = new Date(t), days = daysSince(t);
+  if (days === 0) return "วันนี้ " + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+  if (days === 1) return "เมื่อวาน";
+  return "เมื่อ " + days + " วันก่อน";
+}
 
 el("mLoanCsv").onclick = () => exportLoanCsv();
 el("mExportCsv").onclick = () => {
   if (!db.items.length) { toast("ยังไม่มีรายการค่าใช้จ่ายให้ส่งออก"); return; }
-  const rows = [["เดือน", "หมวด", "รายการ", "จำนวนเงิน", "ครบกำหนด", "สถานะ", "โน้ต"]];
+  const rows = [["เดือน", "หมวด", "รายการ", "จำนวนเงิน", "ครบกำหนด", "สถานะ", "วันที่จ่าย", "โน้ต"]];
   const src = db.items.slice().sort((a, b) => a.ym.localeCompare(b.ym) || (a.due || 99) - (b.due || 99));
   for (const i of src) {
     rows.push([i.ym, cat(i.cat).name, i.name || "", (Number(i.amount) || 0).toFixed(2),
-               i.due || "", i.paid ? "จ่ายแล้ว" : "ค้างจ่าย", i.note || ""]);
+               i.due || "", i.paid ? "จ่ายแล้ว" : i.est ? "ค้างจ่าย (ยอดเดือนก่อน)" : "ค้างจ่าย",
+               i.paid && i.paidOn || "", i.note || ""]);
   }
-  const csv = rows.map(r => r.map(v => '"' + String(v).replace(/"/g, '""') + '"').join(",")).join("\r\n");
-  download("billban-" + ymOf(new Date()) + ".csv", "﻿" + csv, "text/csv", "ส่งออก CSV เรียบร้อย");
+  download("billban-" + fileStamp() + ".csv", "﻿" + toCsv(rows), "text/csv", "ส่งออก CSV เรียบร้อย");
 };
 
 function toCsv(rows){
@@ -4040,7 +4757,7 @@ function exportLoanCsv(){
     rows.push([e.date, loanKind(e).label,
                e.memo || "", (Number(e.amount) || 0).toFixed(2), (e._bal || 0).toFixed(2)]);
   }
-  download("billban-loan-" + ymOf(new Date()) + ".csv", "\ufeff" + toCsv(rows), "text/csv", "ส่งออก CSV เรียบร้อย");
+  download("billban-loan-" + fileStamp() + ".csv", "\ufeff" + toCsv(rows), "text/csv", "ส่งออก CSV เรียบร้อย");
 }
 
 el("mImport").onclick = () => el("fileIn").click();
@@ -4054,28 +4771,31 @@ el("fileIn").addEventListener("change", e => {
       d = JSON.parse(r.result);
       if (!d || !Array.isArray(d.items)) throw new Error("ไม่พบรายการค่าใช้จ่ายในไฟล์นี้");
     } catch (err) {
-      toast("อ่านไฟล์ไม่สำเร็จ: " + err.message);
+      toast(err instanceof SyntaxError ? "อ่านไฟล์ไม่สำเร็จ: ไฟล์นี้ไม่ใช่ไฟล์สำรองของบิลบ้าน" : "อ่านไฟล์ไม่สำเร็จ: " + err.message);
       return;
     }
+    // ตรวจและแปลงทุกรายการก่อนถาม ตัวเลขในคำถามจะได้ตรงกับที่จะได้จริง
+    migratedPlan = false;
+    const c = cleanDb(d);
+    const ln = c.db.loan.entries.length;
     const ok = await ask({
       title:"กู้คืนข้อมูล?",
-      msg:"ไฟล์นี้มีค่าใช้จ่าย " + d.items.length + " รายการ" +
-          (d.loan && Array.isArray(d.loan.entries) && d.loan.entries.length ? " และสมุดคืนเงิน " + d.loan.entries.length + " รายการ" : "") +
+      msg:"ไฟล์นี้มีค่าใช้จ่าย " + c.db.items.length + " รายการ" +
+          (ln ? " และสมุดคืนเงิน " + ln + " รายการ" : "") +
+          (c.bad ? " (ข้าม " + c.bad + " รายการที่อ่านไม่ได้)" : "") +
           " การกู้คืนจะแทนที่ข้อมูลที่มีอยู่ทั้งหมดในเครื่องนี้",
       okText:"กู้คืน"
     });
     if (!ok) return;
-    db = {
-      v:1,
-      items:d.items,
-      templates:Array.isArray(d.templates) ? d.templates : [],
-      loan:Object.assign(blankLoan(), d.loan || {}),
-      settings:Object.assign({ budget:0, theme:db.settings.theme, page:db.settings.page }, d.settings || {})
-    };
+    keepUndo("restore");                             // กู้ผิดไฟล์ก็ย้อนกลับได้
+    // ธีมกับหน้าที่เปิดค้างเป็นของเครื่องนี้ ไฟล์จากเครื่องอื่นไม่ควรมาเปลี่ยน (ยกเว้นไฟล์ระบุธีมไว้ชัด)
+    c.db.settings.theme = c.db.settings.theme || db.settings.theme || "";
+    c.db.settings.page  = db.settings.page;
+    db = c.db;
     save();
     applyTheme(resolvedTheme(), false);
     render();
-    toast("กู้คืนข้อมูลเรียบร้อย");
+    toast("กู้คืนข้อมูลเรียบร้อย", "เลิกทำ", useUndo, 10000);
   };
   r.readAsText(f);
   e.target.value = "";
@@ -4083,16 +4803,36 @@ el("fileIn").addEventListener("change", e => {
 
 el("mPrint").onclick = () => { setPage("bills"); setTimeout(() => window.print(), 200); };
 
+/** รายการเดือนก่อนที่จะยกมา — ข้ามตัวที่เดือนนี้มีอยู่แล้ว (บิลประจำเดียวกัน หรือหมวด+ชื่อเดียวกัน)
+ *  กดซ้ำจึงไม่ได้รายการซ้อน */
+function copyPlan(){
+  const cur = itemsOf(state.ym);
+  const tpls  = new Set(cur.map(i => i.tpl).filter(Boolean));
+  const names = new Set(cur.map(i => i.cat + "|" + (i.name || "").trim()));
+  const add = [];
+  let skip = 0;
+  for (const p of itemsOf(shiftYm(state.ym, -1))) {
+    const key = p.cat + "|" + (p.name || "").trim();
+    if ((p.tpl && tpls.has(p.tpl)) || names.has(key)) { skip++; continue; }
+    names.add(key);
+    add.push(p);
+  }
+  return { add, skip };
+}
 el("mCopyPrev").onclick = () => {
-  const prev = itemsOf(shiftYm(state.ym, -1));
-  if (!prev.length) { toast("เดือนก่อนไม่มีรายการให้คัดลอก"); return; }
+  const { add, skip } = copyPlan();
+  if (!add.length) {
+    toast(skip ? "ทุกรายการจากเดือนก่อนอยู่ในเดือนนี้แล้ว" : "เดือนก่อนไม่มีรายการให้คัดลอก");
+    return;
+  }
   const ids = [];
-  for (const p of prev) {
+  for (const p of add) {
     const it = Object.assign({}, p, { id:uid(), ym:state.ym, paid:false, ts:Date.now() });
-    db.items.push(it); ids.push(it.id);
+    delete it.paidOn;                              // ยังไม่ได้จ่ายของเดือนนี้ วันที่จ่ายของเดือนก่อนไม่ใช่ของมัน
+    db.items.push(it); ids.push(it.id); freshIds.add(it.id);
   }
   save(); render();
-  toast("คัดลอก " + prev.length + " รายการจากเดือนก่อน", "เลิกทำ", () => {
+  toast("คัดลอก " + add.length + " รายการจากเดือนก่อน" + (skip ? " · ข้าม " + skip + " รายการที่มีอยู่แล้ว" : ""), "เลิกทำ", () => {
     db.items = db.items.filter(i => !ids.includes(i.id)); save(); render();
   });
 };
@@ -4102,10 +4842,11 @@ async function askBudget(){
   const v = await ask({
     title:"ตั้งงบประจำเดือน",
     msg:"แถบงบบนการ์ดสรุปจะเป็นสีเหลืองเมื่อใช้เกิน 80% และเป็นสีแดงเมื่อเกินงบ ใส่ 0 เพื่อปิดการเตือน",
-    input:true, label:"งบต่อเดือน (บาท)", value:cur ? String(cur) : "", okText:"บันทึกงบ"
+    input:true, label:"งบต่อเดือน (บาท)", value:cur ? String(cur) : "", okText:"บันทึกงบ",
+    check: s => { const r = readMoney(s); return r.err ? MONEY_ERR[r.err] : ""; }
   });
   if (v === null) return;
-  db.settings.budget = Math.max(0, parseAmount(v));
+  db.settings.budget = readMoney(v).v || 0;
   save(); render();
   toast(db.settings.budget ? "ตั้งงบ " + fmt0(db.settings.budget) + " บาท/เดือน" : "ปิดการเตือนงบแล้ว");
 }
@@ -4116,17 +4857,19 @@ el("mReset").onclick = () => {
   setTimeout(async () => {
     const ok = await ask({
       title:"ล้างข้อมูลทั้งหมดหรือไม่?",
-      msg:"ลบรายการค่าใช้จ่าย บิลประจำ งบ และสมุดคืนเงินทั้งหมด จะไม่สามารถย้อนกลับได้ — แนะนำให้สำรองข้อมูลเก็บไฟล์ไว้ก่อน" +
-          (store ? " และเนื่องจากเปิดซิงค์อยู่ ข้อมูลจะถูกลบจากทุกเครื่องที่ใช้ลิงก์นี้" : ""),
+      msg:"ลบรายการค่าใช้จ่าย บิลประจำ งบ และสมุดคืนเงินทั้งหมด" +
+          (store ? " จากทุกเครื่องที่ใช้ลิงก์นี้ (เปิดซิงค์อยู่)" : "") +
+          " — เครื่องนี้จะเก็บสำเนาไว้ให้ย้อนกลับได้ " + UNDO_DAYS + " วัน แต่ถ้าล้างข้อมูลเบราว์เซอร์สำเนาก็หายด้วย สำรองเป็นไฟล์ไว้ก่อนจะปลอดภัยกว่า",
       okText:"ลบทั้งหมด", danger:true
     });
     if (!ok) return;
+    keepUndo("reset");
     const theme = db.settings.theme, page = db.settings.page;
     db = blank();
     db.settings.theme = theme;
     db.settings.page  = page;
     save(); render();
-    toast("ล้างข้อมูลแล้ว");
+    toast("ล้างข้อมูลแล้ว", "เลิกทำ", useUndo, 10000);
   }, 140);
 };
 
@@ -4166,6 +4909,12 @@ for (const d of $$("dialog")) {
    19. นำทางเดือน + ธีม + คีย์ลัด
    ========================================================== */
 function goMonth(k){ state.ym = shiftYm(state.ym, k); state.filter = "all"; feedOnce = true; closePicker(); render(); }
+// แถบค้างจากเดือนก่อน: ไปเดือนเก่าสุดที่ยังค้าง แล้วกรองให้เห็นเฉพาะที่ยังไม่จ่าย
+el("oldBar").addEventListener("click", () => {
+  const ym = el("oldBar").dataset.ym;
+  if (!YM_RE.test(ym || "")) return;
+  state.ym = ym; state.filter = "unpaid"; feedOnce = true; closePicker(); render();
+});
 el("prevM").onclick  = () => goMonth(-1);
 el("nextM").onclick  = () => goMonth(1);
 el("todayBtn").onclick = () => { state.ym = ymOf(new Date()); state.filter = "all"; render(); };
@@ -4254,9 +5003,14 @@ fillCatSelects();
 ["qaCat", "edCat", "tpCat"].forEach(makeCatSelect);
 applyTheme(resolvedTheme(), false);
 makeDatePicker("lnEdDate");
+makeDatePicker("edPaidOn");
 setPage(db.settings.page === "loan" ? "loan" : "bills");
 // มือถือไม่โฟกัสช่องกรอกตอนเปิดแอป ไม่งั้นแป้นพิมพ์เด้งขึ้นมาบังทั้งจอ
 if (!isPhone() && state.page === "bills") el("qaName").focus();
+// ข้อมูลในเครื่องมีส่วนที่อ่านไม่ได้: บอกตรงๆ (ของเดิมเก็บสำเนาไว้ที่คีย์ billban.v1.skipped แล้ว)
+if (loadSkipped) toast(loadSkipped > 0 ? "ข้ามข้อมูลที่อ่านไม่ได้ " + loadSkipped + " รายการ ที่เหลือใช้งานได้ตามปกติ"
+                                       : "ข้อมูลในเครื่องอ่านไม่ได้ ถ้ามีไฟล์สำรองไว้ กู้คืนได้ที่ ตั้งค่า → กู้คืน", null, null, 8000);
+if (migratedPlan || loadSkipped > 0) { migratedPlan = false; saveLocal(); }   // บันทึกของที่สะอาดแล้ว จะได้ไม่เตือนซ้ำทุกครั้งที่เปิด
 
 // เปิดผ่านลิงก์ที่เผยแพร่: ต่อเข้าที่เก็บข้อมูลเพื่อซิงค์ข้ามเครื่อง
 if (typeof window.claude === "object" && window.claude && typeof window.claude.use === "function") {
