@@ -1,0 +1,218 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>house render</title>
+<style>
+html,body{margin:0;background:linear-gradient(135deg,#2457DD,#3B78F0);min-height:100%}
+body{padding:16px}
+canvas{width:800px;height:600px;outline:1px dashed rgba(255,255,255,.35);display:block}
+</style>
+<script type="importmap">{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}</script>
+</head><body>
+<!--
+  ต้นฉบับภาพบ้าน 3 มิติบนการ์ดสรุปยอด (design/house.webp → ฝังเป็น --house-img ใน index.html)
+  ใช้ตอนออกแบบเท่านั้น ไม่ได้เป็นส่วนหนึ่งของแอป — โหลด three.js จาก CDN จึงต้องต่อเน็ต
+  เปิดผ่านเซิร์ฟเวอร์ในเครื่อง (importmap ใช้กับ file:// ไม่ได้ในบางเบราว์เซอร์) เช่น
+    python -m http.server --directory design
+  แล้วเปิด http://localhost:8000/house-3d.html
+-->
+<p><button id="dl" style="font:14px sans-serif;padding:8px 14px;margin-bottom:10px">บันทึกเป็น house.png</button></p>
+<div id="out"></div>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { RoundedBoxGeometry } from 'three/addons/geometries/RoundedBoxGeometry.js';
+
+const W = 1600, H = 1200;
+const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: true });
+renderer.setPixelRatio(1);
+renderer.setSize(W, H, false);
+renderer.setClearColor(0x000000, 0);
+renderer.outputColorSpace = THREE.SRGBColorSpace;
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.0;
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+document.getElementById('out').appendChild(renderer.domElement);
+
+const scene = new THREE.Scene();
+const pmrem = new THREE.PMREMGenerator(renderer);
+scene.environment = pmrem.fromScene(new RoomEnvironment(), 0.04).texture;
+
+const mat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: .82, metalness: 0, envMapIntensity: .55, ...o });
+const C = {
+  wall: mat(0xF6F7FB), trim: mat(0xFFFFFF), base: mat(0xD9E0EC),
+  roof: mat(0x2B3A5C, { roughness: .7 }), roofDark: mat(0x1F2B45, { roughness: .7 }),
+  glass: mat(0xFFD488, { emissive: 0xFFB04A, emissiveIntensity: .8, roughness: .25, envMapIntensity: 1 }),
+  wood: mat(0xA0673F, { roughness: .7 }), gold: mat(0xF3C567, { metalness: .6, roughness: .3 }),
+  lawn: mat(0x6FC35F, { roughness: .95 }),
+  leafA: mat(0x5CBF6A), leafB: mat(0x48AA5A), leafC: mat(0x78D282), pine: mat(0x3E9B63),
+  trunk: mat(0x8A5A3B), stone: mat(0xEDF0F6), blue: mat(0x3B6FE8, { roughness: .45 }),
+  chimney: mat(0xE4E9F2), flowerP: mat(0xFF8FB1), flowerY: mat(0xFFD45C),
+  lamp: mat(0xFFE2A8, { emissive: 0xFFC46B, emissiveIntensity: 2 })
+};
+
+function add(geo, m, x, y, z, o = {}) {
+  const mesh = new THREE.Mesh(geo, m);
+  mesh.position.set(x, y, z);
+  if (o.rx) mesh.rotation.x = o.rx;
+  if (o.ry) mesh.rotation.y = o.ry;
+  if (o.rz) mesh.rotation.z = o.rz;
+  if (o.sx) mesh.scale.x = o.sx;
+  mesh.castShadow = o.cast !== false;
+  mesh.receiveShadow = true;
+  (o.parent || scene).add(mesh);
+  return mesh;
+}
+const box = (w, h, d, r = .02) => new RoundedBoxGeometry(w, h, d, 3, Math.min(r, w / 2 - 1e-3, h / 2 - 1e-3, d / 2 - 1e-3));
+function face(x, y, z, ry = 0) { const g = new THREE.Group(); g.position.set(x, y, z); g.rotation.y = ry; scene.add(g); return g; }
+
+// ---------- เกาะหญ้า ----------
+{
+  const R = 2.85, T = .32, rr = .13, pts = [];
+  pts.push(new THREE.Vector2(.0001, -T));
+  for (let i = 0; i <= 8; i++) { const a = i / 8 * Math.PI / 2; pts.push(new THREE.Vector2(R - rr + Math.sin(a) * rr, -T + rr - Math.cos(a) * rr)); }
+  for (let i = 0; i <= 8; i++) { const a = i / 8 * Math.PI / 2; pts.push(new THREE.Vector2(R - rr + Math.cos(a) * rr, -rr + Math.sin(a) * rr)); }
+  pts.push(new THREE.Vector2(.0001, 0));
+  add(new THREE.LatheGeometry(pts, 128), C.lawn, 0, 0, 0, { cast: false });
+}
+
+// ---------- หน้าต่าง/ประตู (สร้างบนผนังที่หันออก +z ของ group) ----------
+function win(p, x, y, w, h, { cols = 2, rows = 2, sill = true } = {}) {
+  add(box(w + .1, h + .1, .04, .02), C.trim, x, y, .02, { parent: p });
+  add(box(w, h, .03, .008), C.glass, x, y, .045, { parent: p, cast: false });
+  for (let i = 1; i < cols; i++) add(box(.035, h, .02, .008), C.trim, x - w / 2 + w * i / cols, y, .065, { parent: p });
+  for (let i = 1; i < rows; i++) add(box(w, .035, .02, .008), C.trim, x, y - h / 2 + h * i / rows, .065, { parent: p });
+  if (sill) add(box(w + .2, .05, .12, .015), C.base, x, y - h / 2 - .07, .06, { parent: p });
+}
+
+// ---------- หลังคาจั่ว ----------
+// จั่วหันหน้า (สันหลังคาตามแกน z)
+function gableFront(cx, baseY, cz, w, d, rise, ov = .18, t = .1) {
+  const s = new THREE.Shape(); s.moveTo(-w / 2, 0); s.lineTo(w / 2, 0); s.lineTo(0, rise); s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, { depth: d, bevelEnabled: false }); g.translate(0, 0, -d / 2);
+  add(g, C.wall, cx, baseY, cz);
+  const a = Math.atan2(rise, w / 2), run = w / 2 + ov, L = run / Math.cos(a);
+  const mx = run / 2, my = rise - run * Math.tan(a) / 2, nx = Math.sin(a), ny = Math.cos(a);
+  for (const sg of [1, -1]) {
+    add(box(L, t, d + 2 * ov, .03), C.roof, cx + sg * (mx + nx * t / 2), baseY + my + ny * t / 2, cz, { rz: -sg * a });
+    add(box(L, .07, .05, .01), C.trim, cx + sg * (mx - nx * .045), baseY + my - ny * .045, cz + d / 2 + ov - .04, { rz: -sg * a });
+  }
+  add(box(.16, .1, d + 2 * ov, .03), C.roofDark, cx, baseY + rise + t * .95, cz);
+}
+// จั่วด้านข้าง (สันหลังคาตามแกน x) — x0 = ปลายที่ติดผนังบ้านหลัก
+function gableSide(x0, x1, baseY, cz, d, rise, ov = .18, t = .1) {
+  const w = x1 - x0;
+  const s = new THREE.Shape(); s.moveTo(-d / 2, 0); s.lineTo(d / 2, 0); s.lineTo(0, rise); s.closePath();
+  const g = new THREE.ExtrudeGeometry(s, { depth: w, bevelEnabled: false }); g.translate(0, 0, -w / 2); g.rotateY(Math.PI / 2);
+  add(g, C.wall, x0 + w / 2, baseY, cz);
+  const b = Math.atan2(rise, d / 2), run = d / 2 + ov, L = run / Math.cos(b);
+  const mz = run / 2, my = rise - run * Math.tan(b) / 2, nz = Math.sin(b), ny = Math.cos(b);
+  const len = w + ov, mxc = x0 + len / 2;
+  for (const sg of [1, -1]) {
+    add(box(len, t, L, .03), C.roof, mxc, baseY + my + ny * t / 2, cz + sg * (mz + nz * t / 2), { rx: sg * b });
+    add(box(.05, .07, L, .01), C.trim, x0 + len - .04, baseY + my - ny * .045, cz + sg * (mz - nz * .045), { rx: sg * b });
+  }
+  add(box(len, .1, .16, .03), C.roofDark, mxc, baseY + rise + t * .95, cz);
+}
+
+// ---------- บ้านหลัก ----------
+const M = { x: -.55, z: .1, w: 2.3, d: 2.0, h: 1.4 };
+add(box(M.w + .08, .12, M.d + .08, .03), C.base, M.x, .06, M.z);
+add(box(M.w, M.h, M.d, .03), C.wall, M.x, M.h / 2, M.z);
+gableFront(M.x, M.h, M.z, M.w, M.d, .95);
+const mf = face(0, 0, M.z + M.d / 2);
+win(mf, M.x - .5, .82, .74, .8);
+// หน้าต่างกลมใต้จั่ว
+add(new THREE.CylinderGeometry(.17, .17, .04, 48), C.glass, M.x, M.h + .36, .05, { rx: Math.PI / 2, parent: mf, cast: false });
+add(new THREE.TorusGeometry(.18, .035, 16, 48), C.trim, M.x, M.h + .36, .06, { parent: mf });
+// ประตู
+const dx = M.x + .5;
+add(box(.62, 1.04, .04, .02), C.trim, dx, .12 + .52, .02, { parent: mf });
+add(box(.52, .96, .04, .015), C.wood, dx, .12 + .48, .045, { parent: mf });
+add(box(.1, .62, .02, .008), C.glass, dx + .12, .66, .07, { parent: mf, cast: false });
+add(new THREE.SphereGeometry(.032, 16, 12), C.gold, dx - .16, .6, .08, { parent: mf });
+add(box(.86, .06, .36, .02), C.roof, dx, 1.24, .17, { parent: mf });
+add(box(.82, .12, .34, .03), C.base, dx, .06, .17, { parent: mf });
+add(box(.98, .06, .56, .02), C.base, dx, .03, .3, { parent: mf });
+add(new THREE.SphereGeometry(.05, 16, 12), C.lamp, dx + .42, 1.02, .07, { parent: mf, cast: false });
+{ const pl = new THREE.PointLight(0xFFB85C, 1.4, 2.4, 2); pl.position.set(dx + .42, 1.0, M.z + M.d / 2 + .2); scene.add(pl); }
+// ปล่องไฟ
+{ const cx = M.x + .55, cz = M.z - .4, top = M.h + .95 * (1 - .55 / (M.w / 2)) + .42;
+  add(box(.3, .7, .3, .03), C.chimney, cx, top - .35, cz);
+  add(box(.38, .07, .38, .02), C.roofDark, cx, top + .03, cz); }
+
+// ---------- ปีกบ้าน ----------
+const Wg = { x0: M.x + M.w / 2, x1: M.x + M.w / 2 + 1.6, z: .0, d: 1.5, h: 1.05 };
+const wcx = (Wg.x0 + Wg.x1) / 2, ww = Wg.x1 - Wg.x0;
+add(box(ww + .08, .12, Wg.d + .08, .03), C.base, wcx + .04, .06, Wg.z);
+add(box(ww, Wg.h, Wg.d, .03), C.wall, wcx, Wg.h / 2, Wg.z);
+gableSide(Wg.x0, Wg.x1, Wg.h, Wg.z, Wg.d, .6);
+const wf = face(0, 0, Wg.z + Wg.d / 2);
+win(wf, wcx, .62, 1.1, .6, { cols: 3, rows: 1 });
+const ws = face(Wg.x1, 0, Wg.z, Math.PI / 2);
+win(ws, 0, .64, .46, .46);
+
+// ---------- ทางเดิน ----------
+[[0, 1.82], [.08, 2.25]].forEach(([ox, z]) =>
+  add(new THREE.CylinderGeometry(.18, .18, .04, 32), C.stone, dx + ox, .02, z, { sx: 1.35, cast: false }));
+
+// ---------- ต้นไม้ พุ่มไม้ ----------
+function tree(x, z, s = 1) {
+  add(new THREE.CylinderGeometry(.06 * s, .085 * s, .8 * s, 12), C.trunk, x, .4 * s, z);
+  [[0, 1.05, 0, .46, C.leafA], [.28, .9, .12, .33, C.leafB], [-.25, .92, -.06, .34, C.leafC], [.04, 1.32, -.02, .32, C.leafC]]
+    .forEach(([bx, by, bz, r, m]) => add(new THREE.SphereGeometry(r * s, 40, 28), m, x + bx * s, by * s, z + bz * s));
+}
+function pine(x, z, s = 1) {
+  add(new THREE.CylinderGeometry(.05 * s, .07 * s, .5 * s, 12), C.trunk, x, .25 * s, z);
+  [[.48, .75, .72], [.38, .62, 1.08], [.27, .5, 1.4]].forEach(([r, h, y]) =>
+    add(new THREE.ConeGeometry(r * s, h * s, 32), C.pine, x, y * s, z));
+}
+function bush(x, z, r, m = C.leafB, flowers = 0) {
+  add(new THREE.SphereGeometry(r, 32, 20), m, x, r * .7, z);
+  for (let i = 0; i < flowers; i++) {
+    const a = i * 2.4 + x, ph = .5 + (i % 3) * .25;
+    add(new THREE.SphereGeometry(.035, 12, 8), i % 2 ? C.flowerP : C.flowerY,
+      x + Math.cos(a) * r * Math.sin(ph) * .98, r * .7 + Math.cos(ph) * r * .98, z + Math.abs(Math.sin(a)) * r * Math.sin(ph) * .98, { cast: false });
+  }
+}
+tree(-2.0, -1.05, 1.2);
+tree(-2.05, 1.2, .82);
+pine(2.15, -1.05, 1.05);
+bush(-1.5, 1.4, .2, C.leafA, 5);
+bush(-1.15, 1.45, .14, C.leafC);
+bush(.85, 1.08, .17, C.leafB, 4);
+bush(2.05, .95, .21, C.leafA, 5);
+bush(2.35, .6, .15, C.leafC);
+// ตู้จดหมาย
+add(box(.05, .48, .05, .01), C.trunk, .78, .24, 2.15);
+add(box(.18, .15, .3, .06), C.blue, .78, .52, 2.15);
+
+// ---------- แสง ----------
+scene.add(new THREE.HemisphereLight(0xDDE8FF, 0x5E8A55, .85));
+const sun = new THREE.DirectionalLight(0xFFF2DE, 2.7);
+sun.position.set(-5, 9, 6);
+sun.castShadow = true;
+sun.shadow.mapSize.set(4096, 4096);
+Object.assign(sun.shadow.camera, { left: -5, right: 5, top: 5, bottom: -5, near: 1, far: 30 });
+sun.shadow.bias = -.0004; sun.shadow.normalBias = .02;
+scene.add(sun);
+
+const cam = new THREE.PerspectiveCamera(26, W / H, .1, 100);
+cam.position.set(7.5, 5.6, 10.0);
+cam.lookAt(.1, .7, .2);
+
+window.cam = cam; window.scene = scene; window.renderer = renderer; window.sun = sun;
+window.draw = () => renderer.render(scene, cam);
+// กดปุ่มด้านบนเพื่อบันทึกเป็น PNG พื้นใส 1600×1200 แล้วตัดขอบ/ย่อเป็น WebP กว้าง 400px ก่อนฝังใน index.html
+window.save = () => {
+  draw();
+  renderer.domElement.toBlob(b => {
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(b); a.download = 'house.png'; a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }, 'image/png');
+};
+document.getElementById('dl').onclick = () => save();
+draw();
+window.ready = true;
+</script>
+</body></html>
